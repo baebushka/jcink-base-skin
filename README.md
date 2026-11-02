@@ -18,7 +18,7 @@ It starts out looking exactly like Jcink's default skin. Everything you write he
 6. [Custom profile fields](#6-custom-profile-fields)
 7. [Changing the sample forum content](#7-changing-the-sample-forum-content)
 8. [Putting your skin on Jcink](#8-putting-your-skin-on-jcink)
-9. [Previewing different pages](#9-previewing-different-pages)
+9. [Which Jcink pages are covered](#9-which-jcink-pages-are-covered)
 10. [Troubleshooting](#10-troubleshooting)
 11. [Glossary](#11-glossary)
 
@@ -159,6 +159,8 @@ jcink-base-skin/
 ├── docs/        ← Pictures used in this guide.
 ├── package.json ← Tells Node.js which commands exist (dev, build, copy).
 ├── .gitignore   ← Tells Git which files not to upload.
+├── LICENSE      ← The MIT license: what others may do with this project.
+├── changelog.md ← A list of what changed in each version.
 └── README.md    ← This guide.
 ```
 
@@ -378,23 +380,61 @@ This puts the Post Row template on your clipboard, ready to paste. Type `npm run
 
 ---
 
-## 9. Previewing different pages
+## 9. Which Jcink pages are covered
 
-Use the toolbar, or type these addresses into your browser:
+### Pages the preview builds
 
-| Address | Page |
-|---|---|
-| `localhost:3000` | Board index |
-| `localhost:3000/index.php?c=1` | A single category |
-| `localhost:3000/index.php?showforum=1` | A forum (change the number for others) |
-| `localhost:3000/index.php?showtopic=1` | A topic |
-| `localhost:3000/index.php?showuser=1` | A member's profile |
-| `localhost:3000/index.php?act=Members` | The member list |
-| add `&guest=1` to any address (or `?guest=1` on the index) | See the page as a logged-out guest |
+Use the toolbar, or type these addresses into your browser. They're the same addresses Jcink uses, so links inside your templates work in the preview too.
 
-These are the same addresses Jcink uses, so links inside your templates work in the preview too.
+| Page | Address | Built from these templates |
+|---|---|---|
+| **Board index** | `localhost:3000` | Category List Header, Forum Row, Redirect Row, Board Statistics |
+| **Single category** | `localhost:3000/index.php?c=1` | Same as the board index |
+| **Forum** (its topic list) | `localhost:3000/index.php?showforum=1` | Subforum List Header and Forum Row (when it has subforums), Topic List Header, Topic Row, plus the New Topic / New Poll buttons |
+| **Subforum** | `localhost:3000/index.php?showforum=5` | Same as a forum |
+| **Topic** | `localhost:3000/index.php?showtopic=1` | Post Row and Mini Profile, plus the Add Reply / New Poll / New Topic buttons* |
+| **Profile** | `localhost:3000/index.php?showuser=1` | Main Profile |
+| **Member list** | `localhost:3000/index.php?act=Members` | Member List Header, Member List Row |
+| **Guest view** of any page above | add `&guest=1` (or `?guest=1` on the index) | Shows "Welcome Guest ( Log In \| Register )" instead of the logged-in links |
 
-**For coders:** wrapper input variables work as well. Visiting `?display=contest` sets `<!-- |input_display| -->` to `contest`.
+Change the number in an address to see a different forum, topic or member.
+
+\* The "Track this topic / Email / Print" bar and the "users reading this topic" strip on topic pages aren't templates. They're a close copy of what Jcink adds itself.
+
+### Parts on every page
+
+| Part | Wrapper tag | Where it comes from |
+|---|---|---|
+| Logo bar, menu and "Logged in as" bar | `<% BOARD HEADER %>` | Copied from a real Jcink board (`dev/jcink/board-header.html`) |
+| Breadcrumbs ("Board → Forum → Topic") | `<% NAVIGATION %>` | Built for each page, using your `F_NAV` and `F_NAV_SEP` macros |
+| Shoutbox | `<% DSHOUTBOX %>` | Copied from a real Jcink board, with the sample shouts from `data/board.json` |
+| Your forum content | `<% BOARD %>` | The pages in the table above |
+| Skin selector | `<% SKIN_SELECTOR %>` | A dropdown with your skin's name |
+| Footer | `<% COPYRIGHT %>` | Copied from a real Jcink board (`dev/jcink/copyright.html`) |
+| Page title | `<% TITLE %>` | The board name, plus the forum, topic or member name |
+| Inline PMs and affiliates | `<% PM %>`, `<% AFFS %>` | Show nothing, like a board without those features turned on |
+
+### Pages the preview doesn't build (yet)
+
+Any other address (anything with a different `?act=`) shows a "This page isn't simulated locally" box. Your wrapper and stylesheet still appear around it. Not covered yet:
+
+- **Posting:** new topic, reply, edit post, polls and fast reply
+- **Search:** the search form, results and "View New Posts"
+- **User CP** ("My Controls") and all its pages
+- **Personal messages:** inbox, reading and writing messages
+- **Calendar**
+- **Who's online** (the full list)
+- **Help, Board Rules and Privacy Policy**
+- **Shoutbox** (the full page)
+- **Log in and Register**
+- **Mod CP** and moderation screens
+- **Webpages** made with Jcink's Webpage Maker
+- **Store, Awards, Alerts** and the "who posted" pop-up
+- **Mobile version**
+
+None of these pages use HTML Templates. Jcink builds them itself, so the only way to preview them is to copy the HTML a real board outputs. That's how the header, shoutbox and footer were added. **Want one added?** Open that page on a Jcink board, choose *View Page Source* in your browser, and share the source in an issue on this project's GitHub page.
+
+**For coders:** wrapper input variables work too. Visiting `?display=contest` sets `<!-- |input_display| -->` to `contest`.
 
 ---
 
