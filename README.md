@@ -279,7 +279,7 @@ To add another, copy a whole block, put a comma between blocks, and change the n
 | Member Editable | `fedit` | `"1"` = members can change it themselves. |
 | – | `fmaxinput` | Maximum length (`"0"` = no limit). The preview warns you if a sample answer is too long. |
 | – | `forder` | The field's position in the list. |
-| – | `fcontent` | For dropdowns: the choices, written as `key=Label\|key=Label`, for example `she=she/her\|he=he/him`. |
+| – | `fcontent` | For dropdowns: the choices, written as `key=Label\|key=Label`, for example `no=no\|yes=yes`. Jcink's export sometimes includes a stray `\r` after an option (`"no=no\r\|yes=yes"`). That's normal, and the preview ignores it. |
 
 The preview only uses the settings that change what a page looks like. Hidden, Show on Reg. and Member Editable are kept so the file stays identical to Jcink's export.
 
