@@ -1,0 +1,41 @@
+<div id='quick-login'>
+		<!-- |quick_login| -->
+	</div>
+    <br />
+	<!-- |toplinks| -->
+    <br />
+	<div class="tableborder" id="boardstats">
+		<div class="maintitle"><span class='bstats-text'>Board Statistics</span></div>
+		<table cellpadding='4' cellspacing='1' border='0' width='100%'>        <tr>
+           <td class='pformstrip' colspan='2'> <!-- |total_users| --> user(s) active in the past 60 minutes</td>
+    	</tr>
+    	<tr>
+          <td width="5%" class='row2'><{F_ACTIVE}></td>
+          <td class='row4' width='95%'>
+			<span id='activeusers-stats'><b><!-- |total_guests| --></b> guests, <b><!-- |total_mems| --></b> members, <b><!-- |total_anons| --></b> anonymous members</span>
+	    <div class='thin'> <!-- |online_list| --></div>
+            <span id='activeusers-links'>Show detailed by: <a href='index.php?act=Online&amp;CODE=listall&amp;sort_key=click'>Last Click</a>, <a href='index.php?act=Online&amp;CODE=listall&amp;sort_key=name&amp;sort_order=asc&amp;show_mem=reg'>Member Name</a></span>
+          </td>
+        </tr>
+          <tr>
+           <td class='pformstrip' colspan='2'>Today's Birthdays</td>
+    	</tr>
+    	<tr>
+          <td class='row2' width='5%' valign='middle'><{F_ACTIVE}></div></td>
+          <td class='row4' width='95%'><b> <!-- |birthdays| --></b> members are celebrating their birthday today<br /> <!-- |birthdays_list| --></td>
+        </tr>		   <tr>
+		     <td class='pformstrip' colspan='2'>Board Statistics</td>
+		   </tr>
+		   <tr>
+			 <td class='row2' width='5%' valign='middle'><{F_STATS}></td>
+			 <td class='row4' width="95%" align='left'>Our members have made a total of <b><script>document.write(<!-- |total_posts| -->-forum_posts[4]);</script></b> posts<br />We have <b><!-- |total_mem_reg| --></b> registered members<br />The newest member is <b><!-- |newest_member| --></b><br />Most users ever online was <b> <!-- |most_online| --></b> on <b> <!-- |most_online_date| --></b></td>
+		   </tr>	<tr>
+		<td class='pformstrip' colspan='2'>Members Online Today:  <!-- |online_today| --> <span id='mot_explink' style='display:none'>[<a href='javascript:expand_mot()'>Expand</a>]</span><span id='mot_collink' style='display:inline'>[<a href='javascript:collapse_mot()'>Collapse</a>]</span></td>
+	</tr>
+	<tr id='mot' style='display:inline-compact'>
+		<td class='row2' width='5%' valign='middle'><{F_STATS}></td>
+		<td class='row4' width='95%'><span id='activeusers-mostevertxt'>Most members ever online in one day was <b><!-- |most_online_oneday| --></b>, last accomplished on <b><!-- |most_online_oneday_date| --></b></span><br /><br /><span id='activeusers-followingtxt'>The following members have visited today:</span><br />
+ <!-- |online_today_list| --> 
+</td>
+	</tr>         </table>
+	 </div>

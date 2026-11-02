@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "name": "Out of Character",
+    "forums": [
+      {
+        "id": 1,
+        "name": "Announcements",
+        "description": "News, updates, and rules for the board.",
+        "new_posts": true,
+        "topics": [
+          {
+            "id": 1,
+            "title": "Welcome to the board!",
+            "description": "Read this first",
+            "type": "pinned",
+            "views": 120,
+            "posts": [
+              { "author": 1, "date": "Today, 9:00 AM", "body": "Hi everyone, and welcome! Please read the rules before posting.<br /><br /><b>Bold</b>, <i>italic</i>, and <a href='#'>a link</a> so you can style post content.<div class='quotetop'>QUOTE (Jane Doe)</div><div class='quotemain'>This is what a quote looks like.</div>" },
+              { "author": 2, "date": "Today, 3:04 PM", "body": "Thanks! Excited to be here." }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Plot update: Chapter Two",
+            "description": "What happens next",
+            "type": "regular",
+            "hot": true,
+            "views": 842,
+            "posts": [
+              { "author": 1, "date": "Yesterday, 6:12 PM", "body": "The city is changing..." }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Character Applications",
+        "description": "Submit your characters here.",
+        "new_posts": false,
+        "subforums": [
+          { "id": 5, "name": "Accepted", "description": "Approved characters.", "new_posts": false, "topics": [] },
+          { "id": 6, "name": "Pending", "description": "Waiting for review.", "new_posts": true, "topics": [] }
+        ],
+        "topics": [
+          {
+            "id": 3,
+            "title": "Jane Doe",
+            "description": "the new girl in town",
+            "type": "regular",
+            "views": 40,
+            "posts": [
+              { "author": 2, "date": "Yesterday, 9:41 PM", "body": "Name: Jane Doe<br />Age: 29" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "name": "Discord",
+        "description": "Join us on Discord.",
+        "redirect_url": "https://discord.com",
+        "redirect_hits": 57
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "In Character",
+    "forums": [
+      {
+        "id": 4,
+        "name": "The City",
+        "description": "Rooftops, alleys, and everything in between.",
+        "new_posts": true,
+        "topics": [
+          {
+            "id": 4,
+            "title": "Neon and rain",
+            "description": "open thread",
+            "type": "regular",
+            "views": 33,
+            "posts": [
+              { "author": 1, "date": "Today, 11:20 AM", "body": "The rain hadn't stopped in three days." },
+              { "author": 2, "date": "Today, 11:45 AM", "body": "She ducked under the awning, shaking water from her coat." }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "board_name": "ARIS CODES",
+  "viewer": 1,
+  "groups": {
+    "1": { "title": "Validating", "prefix": "", "suffix": "", "icon": "" },
+    "2": { "title": "Guests", "prefix": "", "suffix": "", "icon": "" },
+    "3": { "title": "Members", "prefix": "", "suffix": "", "icon": "" },
+    "4": { "title": "Admin", "prefix": "<span style='color:#800000'>", "suffix": "</span>", "icon": "" }
+  },
+  "stats": {
+    "total_guests": 2,
+    "total_anons": 0,
+    "most_online": 14,
+    "most_online_date": "Oct 12 2026, 08:15 PM",
+    "most_online_oneday": 6,
+    "most_online_oneday_date": "Oct 12 2026",
+    "birthdays": 0,
+    "birthdays_list": ""
+  },
+  "shouts": [
+    { "member": 1, "date": "Today, 2:58 PM", "text": "Welcome to the board!" },
+    { "member": 2, "date": "Today, 3:01 PM", "text": "Hi everyone :)" }
+  ]
+}

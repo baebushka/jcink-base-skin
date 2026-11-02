@@ -1,0 +1,28 @@
+{
+  "field_1": {
+    "label": "Face Claim",
+    "type": "text",
+    "default": ""
+  },
+  "field_2": {
+    "label": "Age",
+    "type": "text",
+    "default": ""
+  },
+  "field_3": {
+    "label": "Occupation",
+    "type": "text",
+    "default": "Unemployed"
+  },
+  "field_4": {
+    "label": "Pronouns",
+    "type": "dropdown",
+    "options": ["she/her", "he/him", "they/them", "other"],
+    "default": "they/them"
+  },
+  "field_5": {
+    "label": "Plot Notes",
+    "type": "textarea",
+    "default": ""
+  }
+}

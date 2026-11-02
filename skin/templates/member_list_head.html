@@ -1,0 +1,47 @@
+<form action='index.php' method='post'>
+<input type='hidden' name='act' value='Members' />
+<div align="left"><!-- |pages| --></div>
+<br />
+<div class='tableborder' id='member-list'>
+ <div class="maintitle">Member List</div>
+ <table width="100%" border="0" cellspacing="1" cellpadding="4">
+  <tr class='member-list-header'>
+	<th class='pformstrip name' width="30%">Name</th>
+	<th class='pformstrip level' align="center" width="10%">Level</th>
+	<th class='pformstrip group' align="center" width="10%">Group</th>
+	<th class='pformstrip joined' align="center" width="20%">Joined</th>
+	<th class='pformstrip posts' align="center" width="10%">Posts</th>
+	<th class='pformstrip email' align="center">Email</th>
+	<th class='pformstrip photo' width="5%" align="center">Photo</th>
+  </tr>
+  
+  <% MEMBERLIST_ROWS %>
+  <!-- End content Table -->
+  <tr> 
+    <td class='row3' colspan="9" align='center' valign='middle'>
+      <strong>Show matches with photo only?&nbsp; <!-- |photoonly_checkbox| --></strong>
+    </td>
+  </tr>
+  <tr> 
+    <td class='pformstrip' colspan="9" align='center' valign='middle'>
+    <select class="forminput" name="name_box">
+	 <option value="begins">Name begins with</option>
+	 <option value="contains" selected="selected">Name contains</option>
+	 </select>&nbsp;&nbsp;<!-- |search_input| -->
+    </td>
+  </tr>
+  <tr>
+   <td class='darkrow1' colspan="9" align='center' valign='middle'>
+
+	Showing <!-- |group_dropdown| --> 
+	by <!-- |sortby_dropdown| --> 
+	in <!-- |order_dropdown| --> 
+	with <!-- |max_dropdown| --> 
+	results per page 
+	&nbsp;<input type="submit" value="Go" class="forminput" />
+	
+   </td>
+ </tr>
+</table>
+</div>
+</form>

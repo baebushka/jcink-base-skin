@@ -1,0 +1,15 @@
+{
+  "name": "jcink-base-skin",
+  "private": true,
+  "license": "MIT",
+  "repository": "github:baebushka/jcink-base-skin",
+  "scripts": {
+    "dev": "node dev/server.js",
+    "build": "node dev/build.js",
+    "copy": "node dev/copy.js"
+  },
+  "description": "A local, live-reloading preview of a Jcink forum for building skins, plus one-click copying into the Jcink Admin CP.",
+  "engines": {
+    "node": ">=20"
+  }
+}

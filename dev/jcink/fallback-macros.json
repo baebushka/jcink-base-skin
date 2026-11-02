@@ -1,0 +1,15 @@
+{
+  "_note": "Jcink's built-in values for macros the default macro set leaves out. Add the key to skin/macros.json to override one.",
+  "T_ANNO_SUBHEAD": "<div class='topic-title-row'>Announcements</div>",
+  "T_PIN_SUBHEAD": "<div class='topic-title-row'>Important Topics</div>",
+  "T_REG_SUBHEAD": "<div class='topic-title-row'>Forum Topics</div>",
+  "NO_TOPICS": "<div class='no-topics-row'>No topics were found. This is either because there are no topics in this forum, or the topics are older than the current age cut-off.</div>",
+  "TOPIC_DESC_SEPCHAR": ", ",
+  "SUB_SEPCHAR": ", ",
+  "SUBLINKS_NEW": "[ &raquo; ] ",
+  "SUBLINKS_NONEW": "",
+  "SIG_SEPARATOR": "<br /><br />--------------------<br />",
+  "P_UP": "<img src='style_images/1/p_up.gif' border='0' alt='Top' />",
+  "AVATAR": "",
+  "AVATAR_URL": ""
+}
