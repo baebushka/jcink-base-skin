@@ -20,8 +20,8 @@
       "field_1": "Zendaya",
       "field_2": "24",
       "field_3": "Bartender",
-      "field_4": "she/her",
-      "field_5": "Looking for a rival and an old friend."
+      "field_4": "she",
+      "field_5": "English\nSpanish"
     }
   },
   {
@@ -44,7 +44,8 @@
     "fields": {
       "field_1": "Florence Pugh",
       "field_2": "29",
-      "field_4": "they/them"
+      "field_4": "they/them",
+      "field_5": "English"
     }
   }
 ]

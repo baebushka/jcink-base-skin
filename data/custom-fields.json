@@ -1,28 +1,72 @@
 {
-  "field_1": {
-    "label": "Face Claim",
-    "type": "text",
-    "default": ""
+  "1": {
+    "fid": "1",
+    "ftitle": "face claim",
+    "fdesc": "the celebrity your character looks like",
+    "fcontent": "",
+    "ftype": "text",
+    "freq": "1",
+    "fhide": "0",
+    "fmaxinput": "50",
+    "fedit": "1",
+    "forder": "1",
+    "fshowreg": "1",
+    "fjsonversion": "1.00"
   },
-  "field_2": {
-    "label": "Age",
-    "type": "text",
-    "default": ""
+  "2": {
+    "fid": "2",
+    "ftitle": "age",
+    "fdesc": "",
+    "fcontent": "",
+    "ftype": "text",
+    "freq": "0",
+    "fhide": "0",
+    "fmaxinput": "3",
+    "fedit": "1",
+    "forder": "2",
+    "fshowreg": "0",
+    "fjsonversion": "1.00"
   },
-  "field_3": {
-    "label": "Occupation",
-    "type": "text",
-    "default": "Unemployed"
+  "3": {
+    "fid": "3",
+    "ftitle": "occupation",
+    "fdesc": "",
+    "fcontent": "",
+    "ftype": "text",
+    "freq": "0",
+    "fhide": "0",
+    "fmaxinput": "0",
+    "fedit": "1",
+    "forder": "3",
+    "fshowreg": "0",
+    "fjsonversion": "1.00"
   },
-  "field_4": {
-    "label": "Pronouns",
-    "type": "dropdown",
-    "options": ["she/her", "he/him", "they/them", "other"],
-    "default": "they/them"
+  "4": {
+    "fid": "4",
+    "ftitle": "pronouns",
+    "fdesc": "",
+    "fcontent": "she=she/her|he=he/him|they=they/them|other=other",
+    "ftype": "drop",
+    "freq": "0",
+    "fhide": "0",
+    "fmaxinput": "0",
+    "fedit": "1",
+    "forder": "4",
+    "fshowreg": "0",
+    "fjsonversion": "1.00"
   },
-  "field_5": {
-    "label": "Plot Notes",
-    "type": "textarea",
-    "default": ""
+  "5": {
+    "fid": "5",
+    "ftitle": "languages spoken",
+    "fdesc": "one per line",
+    "fcontent": "",
+    "ftype": "area",
+    "freq": "0",
+    "fhide": "0",
+    "fmaxinput": "0",
+    "fedit": "1",
+    "forder": "5",
+    "fshowreg": "0",
+    "fjsonversion": "1.00"
   }
 }

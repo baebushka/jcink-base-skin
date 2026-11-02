@@ -57,18 +57,39 @@ function createRenderer(query, cookies = {}) {
   const forumById = (id) => allForums.find((f) => f.id === Number(id));
   const allTopics = allForums.flatMap((f) => (f.topics || []).map((t) => ({ ...t, forum: f })));
 
-  // Custom fields: values from members.json, falling back to the defaults in custom-fields.json.
+  // Custom fields: data/custom-fields.json is Jcink's own export ({ "76": { fid, ftitle, ftype, ... } }),
+  // and each member's answers live in members.json under "fields" as "field_76" (or just "76").
+  // ftype is "text", "area" (multi-line) or "drop" (fcontent lists the options as "key=Label|key=Label").
+  const dropOptions = (def) =>
+    String(def.fcontent || "")
+      .split("|")
+      .filter(Boolean)
+      .map((opt) => {
+        const [key, ...label] = opt.split("=");
+        return label.length ? { key: key.trim(), label: label.join("=").trim() } : { key: opt.trim(), label: opt.trim() };
+      });
+
   function fieldVars(member) {
     const vars = {};
-    for (const [key, def] of Object.entries(fields)) {
-      let value = member?.fields?.[key] ?? def.default ?? "";
-      if (def.type === "dropdown" && value && def.options && !def.options.includes(value)) {
-        warnings.add(`${member.name}: "${value}" isn't one of the options for ${key} (${def.label})`);
+    const answers = member?.fields || {};
+    for (const def of Object.values(fields)) {
+      const key = `field_${def.fid}`;
+      let value = String(answers[key] ?? answers[def.fid] ?? "");
+      const where = `${member?.name ?? "Guest"}, ${key} (${def.ftitle})`;
+      if (member && def.freq === "1" && !value) warnings.add(`${where} is required but empty`);
+      if (Number(def.fmaxinput) > 0 && value.length > Number(def.fmaxinput)) {
+        warnings.add(`${where} is ${value.length} characters, over the ${def.fmaxinput} limit`);
       }
-      vars[key] = def.type === "textarea" ? nl2br(value) : value;
+      if (def.ftype === "drop" && value) {
+        const option = dropOptions(def).find((o) => o.key === value || o.label === value);
+        if (option) value = option.label;
+        else warnings.add(`${where}: "${value}" isn't one of its dropdown options`);
+      }
+      vars[key] = def.ftype === "area" ? nl2br(value) : value;
     }
-    for (const key of Object.keys(member?.fields || {})) {
-      if (!(key in fields)) warnings.add(`${member.name} has ${key}, but it isn't defined in data/custom-fields.json`);
+    const known = new Set(Object.values(fields).flatMap((d) => [`field_${d.fid}`, String(d.fid)]));
+    for (const key of Object.keys(answers)) {
+      if (!known.has(key)) warnings.add(`${member.name} has ${key}, but it isn't in data/custom-fields.json`);
     }
     return vars;
   }

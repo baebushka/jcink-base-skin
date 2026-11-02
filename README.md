@@ -57,9 +57,17 @@ You **don't** need to know how to program. You only type two short commands, and
 
 ### Step 1: Install Node.js
 
-1. Go to **https://nodejs.org**.
-2. Download the version marked **LTS** (it means "Long Term Support", the stable one).
-3. Open the file you downloaded and click through the installer, keeping all the default options.
+Use Node.js's **pre-built installer**. It's a normal installer you double-click, with no commands to type.
+
+1. Go to **https://nodejs.org/en/download**.
+2. Make sure the version at the top is one marked **LTS** ("Long Term Support", the stable one). It usually is already.
+3. **Skip the box of commands** at the top of the page. That's for a different install method.
+4. Scroll down to **"Or get a prebuilt Node.js®"** and click the installer for your computer:
+   - **Mac:** **macOS Installer (.pkg)**
+   - **Windows:** **Windows Installer (.msi)**
+5. Open the downloaded `.pkg` or `.msi` file and click through the installer, keeping all the default options. It installs **npm** too, which this project also needs.
+
+> The page normally detects your computer automatically. If it picks the wrong system, change it in the dropdowns next to "Or get a prebuilt Node.js® for…".
 
 **To check it worked**, open a terminal (see the box below) and type:
 
@@ -67,7 +75,7 @@ You **don't** need to know how to program. You only type two short commands, and
 node -v
 ```
 
-then press **Enter**. You should see a version number like `v22.11.0`. If the first number is **20 or higher**, you're set.
+then press **Enter**. You should see a version number like `v24.22.2`. If the first number is **20 or higher**, you're set.
 
 > **💡 How do I open a terminal?**
 > A terminal is a window where you type commands instead of clicking.
@@ -229,64 +237,81 @@ This is the **pretend forum** the preview shows. None of it goes to Jcink. Chang
 
 ## 6. Custom profile fields
 
-Jcink lets members fill in extra profile fields, such as a face claim or an age. In Jcink each field has a number, like `field_1`, and you show it in templates with `<!-- |field_1| -->`.
+Jcink lets members fill in extra profile fields, such as a face claim or an age. Each field has a number, and templates show it with a **template variable** like `<!-- |field_76| -->`.
 
-This project lets you **list your fields once** and gives every sample member values for them, so you never type sample data into your templates.
+This project reads your fields in **the same format Jcink exports them**, so you can paste your board's export straight in. Your sample members' answers then appear everywhere you use those variables, so you never type sample data into your templates.
 
-### Step 1: Describe your fields in `data/custom-fields.json`
+### Step 1: Put your fields in `data/custom-fields.json`
 
-Use the **same numbers** your Admin CP shows (*Admin CP → Custom Profile Fields*):
+**Easiest:** export your custom profile fields from your Jcink Admin CP and paste the whole export into `data/custom-fields.json`, replacing the examples.
+
+**Or add a field by hand.** Each field looks like this:
 
 ```json
-{
-  "field_1": { "label": "Face Claim", "type": "text", "default": "" },
-  "field_2": { "label": "Age", "type": "text", "default": "" },
-  "field_4": {
-    "label": "Pronouns",
-    "type": "dropdown",
-    "options": ["she/her", "he/him", "they/them", "other"],
-    "default": "they/them"
-  }
+"76": {
+  "fid": "76",
+  "ftitle": "languages spoken",
+  "fdesc": "one per line",
+  "fcontent": "",
+  "ftype": "area",
+  "freq": "0",
+  "fhide": "0",
+  "fmaxinput": "0",
+  "fedit": "1",
+  "forder": "65",
+  "fshowreg": "0",
+  "fjsonversion": "1.00"
 }
 ```
 
-| Setting | What it means |
-|---|---|
-| `"field_1"` | The field's number from Jcink. |
-| `label` | A name to help you remember what the field is. |
-| `type` | `"text"` (one line), `"textarea"` (several lines; line breaks become `<br />`) or `"dropdown"` (a list of choices). |
-| `options` | For dropdowns only: the allowed choices. The preview warns you if a member's answer isn't one of them. |
-| `default` | What shows when a member left the field empty. |
+To add another, copy a whole block, put a comma between blocks, and change the number in **both** places (`"76":` and `"fid"`).
 
-**To add a new field**, copy one of the blocks, give it the next number and change its label. Remember the comma between blocks.
+**What each setting means.** The first column matches the column names in your Admin CP's custom fields list:
+
+| Admin CP column | Setting | Values |
+|---|---|---|
+| Field Title | `ftitle` | The field's name. `fdesc` is its description. |
+| Type | `ftype` | `"text"` (one line), `"area"` (several lines; line breaks become `<br />`) or `"drop"` (a dropdown). |
+| Template Variable | `fid` | `"76"` means you write `<!-- \|field_76\| -->` in your templates. |
+| Required | `freq` | `"1"` = yes, `"0"` = no. The preview warns you if a sample member leaves a required field empty. |
+| Hidden | `fhide` | `"1"` = yes, `"0"` = no. |
+| Show on Reg. | `fshowreg` | `"1"` = shown on the registration form. |
+| Member Editable | `fedit` | `"1"` = members can change it themselves. |
+| – | `fmaxinput` | Maximum length (`"0"` = no limit). The preview warns you if a sample answer is too long. |
+| – | `forder` | The field's position in the list. |
+| – | `fcontent` | For dropdowns: the choices, written as `key=Label\|key=Label`, for example `she=she/her\|he=he/him`. |
+
+The preview only uses the settings that change what a page looks like. Hidden, Show on Reg. and Member Editable are kept so the file stays identical to Jcink's export.
 
 ### Step 2: Give your sample members answers in `data/members.json`
 
-Inside each member there's a `"fields"` section:
+Inside each member there's a `"fields"` section. Use the same name as the template variable:
 
 ```json
 "fields": {
   "field_1": "Zendaya",
-  "field_2": "24",
-  "field_4": "she/her"
+  "field_4": "she",
+  "field_76": "English\nSpanish"
 }
 ```
 
-A member who doesn't have a field listed gets its `default`.
+- For **dropdowns**, use either the key (`she`) or the label (`she/her`). The page shows the label.
+- For **multi-line** (`area`) fields, start each new line with `\n`.
+- A member who leaves a field out shows nothing there, just like on Jcink.
 
 ### Step 3: Use the field in your templates
 
-Put `<!-- |field_1| -->` anywhere in `mini_profile.html`, `post_row.html`, `profile.html`, `member_list_row.html` or the wrapper:
+Put `<!-- |field_76| -->` anywhere in `mini_profile.html`, `post_row.html`, `profile.html`, `member_list_row.html` or the wrapper:
 
 ```html
-<div class="postbit">Face claim: <!-- |field_1| --></div>
+<div class="postbit">Languages: <!-- |field_76| --></div>
 ```
 
-Save, and every post in the preview shows each member's face claim.
+Save, and every post in the preview shows each member's answer.
+
+> The **⚠** in the bottom-right toolbar lists custom field problems: a required field left empty, an answer that's too long, a dropdown answer that isn't one of the choices, or a template using a field that isn't in `custom-fields.json`.
 
 > ⚠️ **On Jcink itself**, you also have to switch on *"Enable use of Custom Profile Field variables in templates?"* in your Admin CP, or fields won't appear in templates.
-
----
 
 ## 7. Changing the sample forum content
 
