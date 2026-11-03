@@ -13,7 +13,7 @@ Version numbers go up like this:
 
 ---
 
-## Unreleased
+## 1.1.1 – 2026-11-03
 
 - [ 🆕 ] A `documentation/` folder, starting with a step-by-step guide to adding categories, forums, topics and posts (`documentation/adding-forum-content.md`).
 - [ 🆕 ] Clear error messages in the preview when a topic has no posts or a post's `author` doesn't match a member, plus a warning when two categories, forums or topics share an `id`.
