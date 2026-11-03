@@ -152,16 +152,17 @@ Every file in the `skin` folder works this way.
 
 ```
 jcink-base-skin/
-├── skin/        ← YOUR SKIN. This is what goes into Jcink.
-├── data/        ← Sample forum content and custom fields. Stays on your computer.
-├── dev/         ← The engine that runs the preview. You usually don't touch this.
-├── dist/        ← Created by "npm run build": importable skin files.
-├── docs/        ← Pictures used in this guide.
-├── package.json ← Tells Node.js which commands exist (dev, build, copy).
-├── .gitignore   ← Tells Git which files not to upload.
-├── LICENSE      ← The MIT license: what others may do with this project.
-├── changelog.md ← A list of what changed in each version.
-└── README.md    ← This guide.
+├── skin/          ← YOUR SKIN. This is what goes into Jcink.
+├── data/          ← Sample forum content and custom fields. Stays on your computer.
+├── dev/           ← The engine that runs the preview. You usually don't touch this.
+├── dist/          ← Created by "npm run build": importable skin files.
+├── docs/          ← Pictures used in this guide.
+├── documentation/ ← Step-by-step guides (for example, adding forums and posts).
+├── package.json   ← Tells Node.js which commands exist (dev, build, copy).
+├── .gitignore     ← Tells Git which files not to upload.
+├── LICENSE        ← The MIT license: what others may do with this project.
+├── changelog.md   ← A list of what changed in each version.
+└── README.md      ← This guide.
 ```
 
 ### 🎨 `skin/`: your skin (this goes into Jcink)
@@ -316,6 +317,8 @@ Save, and every post in the preview shows each member's answer.
 > ⚠️ **On Jcink itself**, you also have to switch on *"Enable use of Custom Profile Field variables in templates?"* in your Admin CP, or fields won't appear in templates.
 
 ## 7. Changing the sample forum content
+
+> 📘 **New to this?** [Adding categories, forums, topics and posts](documentation/adding-forum-content.md) walks through it step by step, with blocks you can copy.
 
 All of these files use a format called **JSON**. A few rules to keep in mind:
 

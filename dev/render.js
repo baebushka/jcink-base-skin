@@ -57,6 +57,26 @@ function createRenderer(query, cookies = {}) {
   const forumById = (id) => allForums.find((f) => f.id === Number(id));
   const allTopics = allForums.flatMap((f) => (f.topics || []).map((t) => ({ ...t, forum: f })));
 
+  // Catch the usual hand-editing mistakes with messages that say what to fix.
+  for (const t of allTopics) {
+    if (!t.posts?.length) throw new Error(`data/forums.json: topic ${t.id} ("${t.title}") has no posts. Every topic needs at least one.`);
+    for (const p of t.posts) {
+      if (!memberById.has(p.author)) {
+        throw new Error(`data/forums.json: a post in topic ${t.id} ("${t.title}") has "author": ${p.author}, but no member in data/members.json has that id.`);
+      }
+    }
+  }
+  const dupes = (list, what) => {
+    const seen = new Set();
+    for (const item of list) {
+      if (seen.has(item.id)) warnings.add(`data/forums.json: two ${what} use "id": ${item.id}. Give one of them a new number.`);
+      seen.add(item.id);
+    }
+  };
+  dupes(categories, "categories");
+  dupes(allForums, "forums");
+  dupes(allTopics, "topics");
+
   // Custom fields: data/custom-fields.json is Jcink's own export ({ "76": { fid, ftitle, ftype, ... } }),
   // and each member's answers live in members.json under "fields" as "field_76" (or just "76").
   // ftype is "text", "area" (multi-line) or "drop" (fcontent lists the options as "key=Label|key=Label").
