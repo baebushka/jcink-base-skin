@@ -151,7 +151,7 @@ Copy to Jcink: http://localhost:3000/__copy
 
 Go to **http://localhost:3000**. You'll see a forum in Jcink's default style. 🎉
 
-A small dark toolbar in the bottom-right corner lets you jump between pages, preview the board as a different member group, and open the **Groups** and **Copy code** pages.
+A small dark toolbar in the bottom-right corner lets you jump between pages, preview the board as a different member group, and open the **Groups**, **Fields**, **Forums** and **Copy code** pages.
 
 > **Leave the terminal open in your IDE** while you work. That's the preview running. To stop it, click into the terminal and press `Ctrl + C`. To start it again later, repeat Step 4.
 
@@ -287,6 +287,8 @@ In short:
 ## 7. Changing the sample forum content
 
 > 📘 **New to this?** [Adding categories, forums, topics and posts](documentation/adding-forum-content.md) walks through it step by step, with blocks you can copy.
+
+> 🗂️ **Prefer a form?** The **Forums page** (`localhost:3000/__forums`, or **Forums** in the toolbar) lets you add, edit, reorder and delete categories, forums, topics and replies without touching the JSON. It writes `data/forums.json` for you.
 
 All of these files use a format called **JSON**. A few rules to keep in mind:
 
@@ -466,6 +468,7 @@ Extra tools that make designing easier. They only exist in the preview and are n
 | Feature | What it does | Guide |
 |---|---|---|
 | 👥 **Member groups** | Keep your board's groups and their colours in `data/groups.json`, see them all on the Groups page (`localhost:3000/__groups`), and preview the board as any group from the toolbar's **Group** dropdown. | [Member groups](documentation/member-groups.md) |
+| 🗂️ **Forums page** | Add, edit, reorder and delete categories, forums, subforums, topics and replies at `localhost:3000/__forums`. It writes `data/forums.json` for you and checks IDs and authors as you go. | [Adding forum content](documentation/adding-forum-content.md#0-the-easy-way-the-forums-page) |
 | 🏷️ **Fields page** | Add, edit and delete custom profile fields with an Admin CP-style form at `localhost:3000/__fields`. It writes `data/custom-fields.json` for you. | [Custom profile fields](documentation/custom-profile-fields.md#4-what-is-the-fields-page) |
 
 ---

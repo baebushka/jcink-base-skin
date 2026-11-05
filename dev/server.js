@@ -2,14 +2,13 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { spawn } = require("child_process");
 const { ROOT, SKIN, DATA, JCINK, loadSkin, loadGroups, groupStyle } = require("./skin");
 const { createRenderer } = require("./render");
 const { pieces, skinXml, templatesXml } = require("./pieces");
+const { esc, inlineJson, PAGE_CSS, FORM_CSS, COPY_JS, radios, openFile } = require("./page-kit");
+const forums = require("./forums-page");
 
 const PORT = process.env.PORT || 3000;
-
-const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 // The toolbar's group dropdown (and the Groups page) remember the choice in a "dev_group" cookie.
 const SET_GROUP_JS = `function devSetGroup(id) {
@@ -41,6 +40,7 @@ ${SET_GROUP_JS}
   ${groupSelect(toolbar)}
   <a href="/__groups" target="_blank">Groups</a>
   <a href="/__fields" target="_blank">Fields</a>
+  <a href="/__forums" target="_blank">Forums</a>
   <a href="/__copy" target="_blank"><b>Copy code</b></a>
   ${warnings.length ? `<details><summary>&#9888; ${warnings.length}</summary><ul>${warnings.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></details>` : ""}
   <button onclick="this.parentNode.remove()" title="Hide">&times;</button>
@@ -56,28 +56,6 @@ ${SET_GROUP_JS}
   #dev-bar ul{position:absolute;bottom:100%;right:0;margin:0 0 6px;padding:10px 10px 10px 26px;max-width:420px;background:#111;color:#fff;border-radius:8px;line-height:1.5}
   .dev-missing{color:#c00;font:11px monospace}
 </style>`;
-
-// Shared look for the helper pages (/__copy, /__groups and /__fields).
-const PAGE_CSS = `
-  body{margin:0;background:#f4f4f5;color:#18181b;font:14px/1.5 system-ui,sans-serif}
-  main{max-width:900px;margin:0 auto;padding:24px 16px}
-  h1{font-size:22px;margin:0 0 4px} h2{font-size:15px;margin:0} p{margin:0;color:#71717a;font-size:12px}
-  section{background:#fff;border:1px solid #e4e4e7;border-radius:8px;margin-bottom:12px;overflow:hidden}
-  section header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px}
-  textarea{display:block;width:100%;box-sizing:border-box;border:0;border-top:1px solid #e4e4e7;font:12px/1.4 ui-monospace,monospace;padding:10px;height:120px;resize:vertical;background:#fafafa}
-  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e4e4e7;border-radius:8px}
-  td,th{padding:6px 8px;border-top:1px solid #e4e4e7;vertical-align:middle} td textarea{border:1px solid #e4e4e7;height:auto;border-radius:4px}
-  button{background:#7c3aed;color:#fff;border:0;border-radius:6px;padding:6px 14px;font-weight:600;cursor:pointer}
-  button.done{background:#16a34a}`;
-
-const COPY_JS = `
-document.addEventListener("click", async (e) => {
-  const id = e.target.dataset.copy; if (!id) return;
-  await navigator.clipboard.writeText(document.getElementById("code-" + id).value);
-  e.target.textContent = "Copied!"; e.target.classList.add("done");
-  setTimeout(() => { e.target.textContent = "Copy"; e.target.classList.remove("done"); }, 1500);
-});
-new EventSource("/__live").onmessage = () => location.reload();`;
 
 // "Board Owner" -> "board-owner", for the .board-owner / #board-owner selectors.
 const nameSlug = (name) => String(name).replace(/<[^>]*>/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -300,55 +278,22 @@ function fieldsPage() {
 </tr>`,
     )
     .join("");
-  const radios = (name, help, value) => `<tr><th>${help}</th><td class="radios">
-    <label class="yes"><input type="radio" name="${name}" value="1"${value === "1" ? " checked" : ""}> Yes</label>
-    <label class="no"><input type="radio" name="${name}" value="0"${value === "1" ? "" : " checked"}> No</label></td></tr>`;
-  // Inline JSON for the page's script; "<" is escaped so a title can't close the <script>.
-  const json = JSON.stringify(fields).replace(/</g, "\\u003c");
+  const json = inlineJson(fields);
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Custom profile fields</title>
-<style>${PAGE_CSS}
+<style>${PAGE_CSS}${FORM_CSS}
   main{max-width:1100px}
-  th{text-align:left;font-size:12px;color:#71717a;font-weight:600}
   .list th{border-top:0}
   .list td p{margin:0}
   .table-wrap{overflow-x:auto;margin:16px 0 28px}
   span.yes{color:#15803d} span.no{color:#a1a1aa}
   button.var{background:none;color:#18181b;border:1px solid #e4e4e7;font:12px ui-monospace,monospace;padding:3px 6px;white-space:nowrap}
   button.var.done{background:#dcfce7}
-  button.ghost{background:none;color:#7c3aed;padding:4px 8px}
-  button.ghost:hover{background:#f5f3ff}
-  button.danger{color:#dc2626} button.danger:hover{background:#fef2f2}
-  button.danger.armed{background:#dc2626;color:#fff}
   td.actions{white-space:nowrap;text-align:right}
   .empty{padding:16px;color:#71717a}
-  .file-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 0;font-size:12px;color:#71717a}
-  .file-bar button{background:#18181b} .file-bar button.done{background:#16a34a}
-  .alert{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;margin:12px 0}
-  .alert[hidden]{display:none}
-  .notice{background:#f0fdf4;color:#15803d;border-color:#bbf7d0}
-  form{background:#fff;border:1px solid #e4e4e7;border-radius:8px;overflow:hidden}
-  form > h2{background:#18181b;color:#fff;padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
-  form > h2 button{font-size:12px;font-weight:500;background:#fff2}
-  form table{border:0;border-radius:0}
-  form th{width:50%;color:#18181b;font-size:14px;background:#fafafa;border-right:1px solid #e4e4e7;padding:10px 12px;vertical-align:top}
-  form th b{display:block} form th span{display:block;font-weight:400;color:#52525b;font-size:13px} form th i{display:block;font-weight:400;color:#71717a;font-size:12px}
-  form td{padding:10px 12px}
-  form input[type=text],form input[type=number],form select{font:inherit;padding:5px 8px;border:1px solid #d4d4d8;border-radius:5px;width:100%;max-width:320px;box-sizing:border-box;background:#fff}
-  form td textarea{height:110px;max-width:100%;border:1px solid #d4d4d8;border-radius:5px;background:#fff}
-  .count{font-size:11px;color:#a1a1aa;margin-top:2px}
-  .radios{display:flex;gap:10px;flex-wrap:wrap}
-  .radios label{display:flex;align-items:center;gap:6px;padding:5px 14px 5px 8px;border-radius:5px;cursor:pointer;min-width:70px}
-  .radios label.yes{background:#dcfce7;border:1px solid #86efac;color:#14532d}
-  .radios label.no{background:#fee2e2;border:1px solid #fca5a5;color:#7f1d1d}
   tr.drop-only.off{display:none}
   .demo select{max-width:160px}
-  .footer{display:flex;justify-content:flex-end;gap:8px;padding:10px 12px;border-top:1px solid #e4e4e7;background:#fafafa}
   #json-out{margin-top:16px}
   #json-out textarea{height:280px}
-  @media (max-width:700px){
-    form tr{display:block} form th,form td{display:block;width:auto;border-right:0}
-    form th{border-bottom:0;padding-bottom:4px}
-  }
 </style></head><body><main>
 <h1>Custom profile fields</h1>
 <p>From <code>data/custom-fields.json</code>, in the same format as Jcink's export. Saving here writes the file for you. Give your sample members answers in <code>data/members.json</code> under <code>"fields"</code>.</p>
@@ -556,15 +501,7 @@ new EventSource("/__live").onmessage = () => { if (!dirty) location.reload(); };
 // Opens data/custom-fields.json in the computer's default app for .json files.
 function openFieldsFile() {
   if (!fs.existsSync(FIELDS_FILE)) throw new Error("data/custom-fields.json doesn't exist yet. Add a field first.");
-  const [cmd, args] =
-    process.platform === "darwin" ? ["open", [FIELDS_FILE]]
-    : process.platform === "win32" ? ["cmd", ["/c", "start", '""', FIELDS_FILE]]
-    : ["xdg-open", [FIELDS_FILE]];
-  return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, { stdio: "ignore", detached: true, windowsVerbatimArguments: process.platform === "win32" });
-    child.on("error", () => reject(new Error(`Couldn't open the file. Open it yourself: ${FIELDS_FILE}`)));
-    child.on("spawn", () => { child.unref(); resolve({ ok: true }); });
-  });
+  return openFile(FIELDS_FILE);
 }
 
 function readBody(req) {
@@ -634,19 +571,21 @@ http
       const cookies = Object.fromEntries((req.headers.cookie || "").split(/;\s*/).filter(Boolean).map((c) => c.split("=")));
       if (p === "/__copy") return send(res, 200, "text/html; charset=utf-8", copyPage());
       if (p === "/__groups") return send(res, 200, "text/html; charset=utf-8", groupsPage(cookies));
-      if ((p === "/__fields" || p === "/__fields/open") && req.method === "POST") {
-        // Only the Fields page may write or open the file: a JSON body (which other websites can't send without asking) from this origin.
+      const editors = { "/__fields": changeFields, "/__fields/open": openFieldsFile, "/__forums": forums.change, "/__forums/open": forums.open };
+      if (editors[p] && req.method === "POST") {
+        // Only the Fields and Forums pages may write or open files: a JSON body (which other websites can't send without asking) from this origin.
         const origin = req.headers.origin;
         if (!/^application\/json\b/.test(req.headers["content-type"] || "") || (origin && origin !== `http://${req.headers.host}`)) {
           return send(res, 403, "application/json", JSON.stringify({ error: "Forbidden" }));
         }
         readBody(req)
-          .then((body) => (p === "/__fields/open" ? openFieldsFile() : changeFields(JSON.parse(body || "{}"))))
+          .then((body) => editors[p](JSON.parse(body || "{}")))
           .then((out) => send(res, 200, "application/json", JSON.stringify(out)))
           .catch((err) => send(res, 400, "application/json", JSON.stringify({ error: err.message })));
         return;
       }
       if (p === "/__fields") return send(res, 200, "text/html; charset=utf-8", fieldsPage());
+      if (p === "/__forums") return send(res, 200, "text/html; charset=utf-8", forums.page());
       if (p === "/__skin.xml") return send(res, 200, "application/xml", skinXml());
       if (p === "/__templates.xml") return send(res, 200, "application/xml", templatesXml());
       // Jcink's default images live on its CDN.
@@ -672,7 +611,7 @@ http
       send(res, 500, "text/html; charset=utf-8", `<pre style="padding:16px;color:#b00">${esc(err.message)}\n\n${esc(err.stack)}</pre><script>new EventSource("/__live").onmessage=()=>location.reload()</script>`);
     }
   })
-  .listen(PORT, () => console.log(`Jcink preview: http://localhost:${PORT}\nCopy to Jcink: http://localhost:${PORT}/__copy\nMember groups: http://localhost:${PORT}/__groups\nProfile fields: http://localhost:${PORT}/__fields`));
+  .listen(PORT, () => console.log(`Jcink preview: http://localhost:${PORT}\nCopy to Jcink: http://localhost:${PORT}/__copy\nMember groups: http://localhost:${PORT}/__groups\nProfile fields: http://localhost:${PORT}/__fields\nForums: http://localhost:${PORT}/__forums`));
 
 // Stylesheet edits swap in place; anything else reloads the page.
 let timer;
