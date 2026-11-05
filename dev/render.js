@@ -1,5 +1,7 @@
 // Builds board pages the way Jcink does: data -> HTML templates -> wrapper -> macros.
-const { loadSkin, loadData } = require("./skin");
+const { loadSkin, loadData, groupColours } = require("./skin");
+
+const GUEST_GROUP = 2; // Jcink's built-in Guests group
 
 const stripTags = (html) => String(html).replace(/<[^>]*>/g, "");
 const nl2br = (text) => String(text).replace(/\r?\n/g, "<br />");
@@ -7,8 +9,26 @@ const nl2br = (text) => String(text).replace(/\r?\n/g, "<br />");
 function createRenderer(query, cookies = {}) {
   const skin = loadSkin();
   const data = loadData();
-  const { board, fields, members, categories } = data;
+  const { board, fields, categories, groups } = data;
   const warnings = new Set();
+
+  // ---------- member groups ----------
+
+  const groupById = new Map();
+  for (const g of groups) {
+    if (groupById.has(g.id)) warnings.add(`data/groups.json: two groups use "id": ${g.id}. Give one of them a new number.`);
+    groupById.set(g.id, g);
+    for (const c of groupColours(g)) {
+      if (!/^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(c.hex)) warnings.add(`data/groups.json: ${g.name}'s "${c.key}" ("${g[c.key]}") isn't a hex colour`);
+    }
+  }
+  if (board.groups) warnings.add(`data/board.json: "groups" is no longer used. Member groups now live in data/groups.json.`);
+
+  // The toolbar's group dropdown stores its choice in a "dev_group" cookie: the viewer is previewed as that group.
+  const ownViewer = data.members.find((m) => m.id === board.viewer);
+  const previewGroup = groupById.has(Number(cookies.dev_group)) ? Number(cookies.dev_group) : null;
+  const asGuest = Boolean(query.guest) || previewGroup === GUEST_GROUP;
+  const members = data.members.map((m) => (m === ownViewer && previewGroup && !asGuest ? { ...m, group: previewGroup } : m));
 
   // ---------- template filling ----------
 
@@ -44,8 +64,17 @@ function createRenderer(query, cookies = {}) {
   // ---------- data lookups ----------
 
   const memberById = new Map(members.map((m) => [m.id, m]));
-  const group = (id) => board.groups[id] || { title: "Members", prefix: "", suffix: "", icon: "" };
-  const viewer = query.guest ? null : memberById.get(board.viewer) || null;
+  function group(id) {
+    const g = groupById.get(Number(id));
+    if (!g) {
+      warnings.add(`Group ${id} isn't in data/groups.json`);
+      return { title: "", prefix: "", suffix: "", icon: "" };
+    }
+    return { title: g.name, prefix: g.prefix || "", suffix: g.suffix || "", icon: g.icon || "" };
+  }
+  for (const m of members) if (!groupById.has(Number(m.group))) warnings.add(`data/members.json: ${m.name} has "group": ${m.group}, but no group in data/groups.json has that id.`);
+  const memberGroups = JSON.stringify(Object.fromEntries(groups.map((g) => [g.id, group(g.id)])));
+  const viewer = asGuest ? null : memberById.get(board.viewer) || null;
 
   const allForums = [];
   for (const cat of categories) {
@@ -322,7 +351,7 @@ function createRenderer(query, cookies = {}) {
       most_online_oneday_date: s.most_online_oneday_date,
       quick_login: "",
       toplinks: "",
-      member_groups: JSON.stringify(board.groups),
+      member_groups: memberGroups,
     });
   }
 
@@ -443,7 +472,7 @@ function createRenderer(query, cookies = {}) {
         max_dropdown: "<select class='forminput'><option>10</option></select>",
         pages: "Pages: (1) <b>[1]</b>",
         photoonly_checkbox: "<input type='checkbox' value='1' name='photoonly' class='checkbox' />",
-        member_groups: JSON.stringify(board.groups),
+        member_groups: memberGroups,
       },
       { MEMBERLIST_ROWS: rows }
     );
@@ -513,7 +542,8 @@ function createRenderer(query, cookies = {}) {
         is_mod: 0,
       });
     } else {
-      Object.assign(vars, fieldVars(null), { name: "Guest", id: 0, g_id: 2, g_title: "Guests", posts: 0 });
+      const g = group(GUEST_GROUP);
+      Object.assign(vars, fieldVars(null), { name: "Guest", id: 0, g_id: GUEST_GROUP, g_title: g.title, prefix: g.prefix, suffix: g.suffix, g_icon: g.icon, posts: 0 });
     }
     return vars;
   }
@@ -547,7 +577,8 @@ function createRenderer(query, cookies = {}) {
       JAVASCRIPT: "",
       GENERATOR: "",
     });
-    return { html: applyMacros(html), warnings: [...warnings] };
+    const toolbar = { groups, selected: query.guest ? GUEST_GROUP : previewGroup, own: ownViewer && group(ownViewer.group).title };
+    return { html: applyMacros(html), warnings: [...warnings], toolbar };
   }
 
   return { page };

@@ -38,6 +38,7 @@ The project starts out looking exactly like Jcink's default skin. Everything you
 9. [Which Jcink pages are covered](#9-which-jcink-pages-are-covered)
 10. [Troubleshooting](#10-troubleshooting)
 11. [Glossary](#11-glossary)
+12. [Development features](#12-development-features)
 
 ---
 
@@ -52,6 +53,7 @@ Here is a more detailed breakdown of the currently supported features, as of Nov
 - 🧩 **Jcink compatible.** Your wrapper, stylesheet, macros and HTML templates work exactly like they do on Jcink, including variables like `<!-- |name| -->`.
 - 🗂️ **Sample content.** The project provides categories, forums, topics, posts, and members by default. You can always edit them in `data/`, and information on how to edit and add more is provided in `documentation/`.
 - 🏷️ **Profile-field support.** You can export your site's custom profile fields from the Admin CP and paste them straight into `data/custom-fields.json`. Alternatively, you can create them using the provided pattern and import them straight into the Admin CP.
+- 🛠️ **Development features.** Tools that only exist in the preview, like switching which member group you're viewing the board as. See [section 12](#12-development-features).
 - 📋 **Export to Jcink.** The "Copy to Jcink" (`localhost:3000/__copy`) page gives you a Copy button for every box in the Admin CP, plus importable skin files.
 - 🐛 **Easier troubleshooting.** Because you will work with an IDE, mistakes are not only minimised by the program itself, but troubleshooting through errors is inherently easier. For experienced developers who work with JavaScript, swapping this project's `dev/` core into TypeScript should not take a long time.
 
@@ -149,7 +151,7 @@ Copy to Jcink: http://localhost:3000/__copy
 
 Go to **http://localhost:3000**. You'll see a forum in Jcink's default style. 🎉
 
-A small dark toolbar in the bottom-right corner lets you jump between pages and open the **Copy code** page.
+A small dark toolbar in the bottom-right corner lets you jump between pages, preview the board as a different member group, and open the **Groups** and **Copy code** pages.
 
 > **Leave the terminal open in your IDE** while you work. That's the preview running. To stop it, click into the terminal and press `Ctrl + C`. To start it again later, repeat Step 4.
 
@@ -242,8 +244,9 @@ This is the **pretend forum** the preview shows. None of it goes to Jcink. Chang
 |---|---|
 | `custom-fields.json` | Your board's **custom profile fields** (see [section 6](#6-custom-profile-fields)). |
 | `members.json` | The sample **members**: names, groups, avatars, post counts and their custom field answers. |
+| `groups.json` | The **member groups**: each group's number (`g_id`), name and your colours for it (see [the member groups guide](documentation/member-groups.md)). |
 | `forums.json` | The **categories**, **forums**, **subforums**, **topics** and **posts**. |
-| `board.json` | General **board info**: the board name, which member you're "logged in" as, member **groups** (with name colors), the statistics numbers and sample **shoutbox** messages. |
+| `board.json` | General **board info**: the board name, which member you're "logged in" as, the statistics numbers and sample **shoutbox** messages. |
 | `images/` | Sample avatars used by the sample members. |
 
 ### ⚙️ `dev/`: the preview engine (you usually don't need to open this)
@@ -514,6 +517,17 @@ The preview copies Jcink as closely as possible, but some pages (search, the Use
 | **JSON** | The simple text format the `data/` files and `macros.json` use. |
 | **Terminal** | A window where you type commands. |
 | **localhost** | An address meaning "this computer". Only you can see `localhost:3000`. |
+| **Member group** | A group members belong to, such as Members or Admin. Its number is shown with `<!-- \|g_id\| -->`. |
+
+---
+
+## 12. Development features
+
+Extra tools that make designing easier. They only exist in the preview and are never copied to Jcink. Each one has a full guide in the `documentation/` folder.
+
+| Feature | What it does | Guide |
+|---|---|---|
+| 👥 **Member groups** | Keep your board's groups and their colours in `data/groups.json`, see them all on the Groups page (`localhost:3000/__groups`), and preview the board as any group from the toolbar's **Group** dropdown. | [Member groups](documentation/member-groups.md) |
 
 ---
 

@@ -2,7 +2,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { ROOT, SKIN, DATA, JCINK, loadSkin } = require("./skin");
+const { ROOT, SKIN, DATA, JCINK, loadSkin, loadGroups, groupColours } = require("./skin");
 const { createRenderer } = require("./render");
 const { pieces, skinXml, templatesXml } = require("./pieces");
 
@@ -10,7 +10,19 @@ const PORT = process.env.PORT || 3000;
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-const DEV_CLIENT = (warnings) => `
+// The toolbar's group dropdown (and the Groups page) remember the choice in a "dev_group" cookie.
+const SET_GROUP_JS = `function devSetGroup(id) {
+  document.cookie = id ? "dev_group=" + id + "; path=/; max-age=31536000" : "dev_group=; path=/; max-age=0";
+}`;
+
+function groupSelect({ groups, selected, own }) {
+  const options = groups.map((g) => `<option value="${g.id}"${g.id === selected ? " selected" : ""}>${g.id} &middot; ${esc(g.name)}</option>`);
+  return `<select id="dev-group" title="Preview as member group (&lt;!-- |g_id| --&gt;)" onchange="devSetGroup(this.value); location.href = location.href.replace(/([?&])guest=1&?/, '$1').replace(/[?&]$/, '')">
+    <option value=""${selected ? "" : " selected"}>Group: own${own ? ` (${esc(own)})` : ""}</option>${options.join("")}
+  </select>`;
+}
+
+const DEV_CLIENT = (warnings, toolbar) => `
 <script>
 (() => {
   const es = new EventSource("/__live");
@@ -20,10 +32,13 @@ const DEV_CLIENT = (warnings) => `
     } else location.reload();
   };
 })();
+${SET_GROUP_JS}
 </script>
 <nav id="dev-bar">
   <a href="/">Index</a><a href="/index.php?showforum=1">Forum</a><a href="/index.php?showtopic=1">Topic</a>
   <a href="/index.php?showuser=1">Profile</a><a href="/index.php?act=Members">Members</a>
+  ${groupSelect(toolbar)}
+  <a href="/__groups" target="_blank">Groups</a>
   <a href="/__copy" target="_blank"><b>Copy code</b></a>
   ${warnings.length ? `<details><summary>&#9888; ${warnings.length}</summary><ul>${warnings.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></details>` : ""}
   <button onclick="this.parentNode.remove()" title="Hide">&times;</button>
@@ -34,9 +49,93 @@ const DEV_CLIENT = (warnings) => `
   #dev-bar a,#dev-bar button,#dev-bar summary{color:#fff!important;text-decoration:none;padding:6px 8px;border-radius:5px;background:none;border:0;cursor:pointer;font:inherit}
   #dev-bar a:hover,#dev-bar button:hover,#dev-bar summary:hover{background:#fff2}
   #dev-bar summary{color:#fc6!important;list-style:none}
+  #dev-bar select{color:#fff;background:#fff1;border:0;border-radius:5px;padding:5px 4px;font:inherit;cursor:pointer;max-width:170px}
+  #dev-bar option{color:#111;background:#fff}
   #dev-bar ul{position:absolute;bottom:100%;right:0;margin:0 0 6px;padding:10px 10px 10px 26px;max-width:420px;background:#111;color:#fff;border-radius:8px;line-height:1.5}
   .dev-missing{color:#c00;font:11px monospace}
 </style>`;
+
+// Shared look for the helper pages (/__copy and /__groups).
+const PAGE_CSS = `
+  body{margin:0;background:#f4f4f5;color:#18181b;font:14px/1.5 system-ui,sans-serif}
+  main{max-width:900px;margin:0 auto;padding:24px 16px}
+  h1{font-size:22px;margin:0 0 4px} h2{font-size:15px;margin:0} p{margin:0;color:#71717a;font-size:12px}
+  section{background:#fff;border:1px solid #e4e4e7;border-radius:8px;margin-bottom:12px;overflow:hidden}
+  section header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px}
+  textarea{display:block;width:100%;box-sizing:border-box;border:0;border-top:1px solid #e4e4e7;font:12px/1.4 ui-monospace,monospace;padding:10px;height:120px;resize:vertical;background:#fafafa}
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e4e4e7;border-radius:8px}
+  td,th{padding:6px 8px;border-top:1px solid #e4e4e7;vertical-align:middle} td textarea{border:1px solid #e4e4e7;height:auto;border-radius:4px}
+  button{background:#7c3aed;color:#fff;border:0;border-radius:6px;padding:6px 14px;font-weight:600;cursor:pointer}
+  button.done{background:#16a34a}`;
+
+const COPY_JS = `
+document.addEventListener("click", async (e) => {
+  const id = e.target.dataset.copy; if (!id) return;
+  await navigator.clipboard.writeText(document.getElementById("code-" + id).value);
+  e.target.textContent = "Copied!"; e.target.classList.add("done");
+  setTimeout(() => { e.target.textContent = "Copy"; e.target.classList.remove("done"); }, 1500);
+});
+new EventSource("/__live").onmessage = () => location.reload();`;
+
+// CSS custom properties per group, for a class like g-<!-- |g_id| --> in your wrapper or templates.
+function groupCss(groups) {
+  const rules = groups.map((g) => {
+    const props = groupColours(g).map((c) => `--clr${c.n}: ${c.hex};`).join(" ");
+    return `/* ${g.name.replace(/\*\//g, "")} */\n.g-${g.id} { ${props} }`;
+  });
+  return `/* Member group colours from data/groups.json.\n   Add class="g-<!-- |g_id| -->" to an element, then use var(--clr1), var(--clr2), ... inside it. */\n${rules.join("\n")}\n`;
+}
+
+function groupsPage(cookies) {
+  const groups = loadGroups();
+  const current = groups.some((g) => g.id === Number(cookies.dev_group)) ? Number(cookies.dev_group) : null;
+  const swatch = (c) =>
+    `<button class="swatch" data-hex="${esc(c.hex)}" title="Copy ${esc(c.key)}"><i style="background:${esc(c.hex)}"></i><span><b>clr${c.n}</b> ${esc(c.hex)}</span></button>`;
+  const rows = groups
+    .map(
+      (g) => `<tr${g.id === current ? ' class="current"' : ""}>
+  <td><code>${g.id}</code></td>
+  <td><b>${esc(g.name)}</b>${g.id === current ? ' <span class="tag">previewing</span>' : ""}</td>
+  <td><div class="swatches">${groupColours(g).map(swatch).join("") || '<p>No <code>clr#-hex</code> colours</p>'}</div></td>
+  <td><button data-preview="${g.id}">Preview</button></td>
+</tr>`
+    )
+    .join("");
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Member groups</title>
+<style>${PAGE_CSS}
+  th{text-align:left;font-size:12px;color:#71717a;font-weight:600;border-top:0}
+  tr.current td{background:#f5f3ff}
+  .tag{font-size:11px;background:#7c3aed;color:#fff;border-radius:4px;padding:1px 6px;margin-left:4px}
+  .swatches{display:flex;flex-wrap:wrap;gap:6px}
+  button.swatch{display:flex;align-items:center;gap:6px;background:#fff;color:#18181b;border:1px solid #e4e4e7;padding:3px 8px 3px 3px;font:12px ui-monospace,monospace}
+  button.swatch i{width:20px;height:20px;border-radius:4px;box-shadow:inset 0 0 0 1px #0002}
+  button.swatch.done{background:#dcfce7}
+  .bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:16px 0 12px;flex-wrap:wrap}
+  .bar a{color:#7c3aed}
+  @media (max-width:600px){ td:nth-child(4),th:nth-child(4){display:none} }
+</style></head><body><main>
+<h1>Member groups</h1>
+<p>From <code>data/groups.json</code>. Jcink prints a member's group number with <code>&lt;!-- |g_id| --&gt;</code>. Click a colour to copy it, or <b>Preview</b> to see the board as that group.</p>
+<div class="bar"><span>${current ? `Previewing as <b>${esc(groups.find((g) => g.id === current).name)}</b>.` : "Previewing as the viewer's own group."}</span>
+  ${current ? '<a href="#" data-preview="">Back to own group</a>' : ""}</div>
+<table><tr><th>ID</th><th>Name</th><th>Colours</th><th></th></tr>${rows}</table>
+<h2 style="margin:24px 0 8px">Group colours as CSS</h2>
+<section><header><div><h2>CSS variables</h2><p>Paste into your stylesheet if you want to use them</p></div><button data-copy="group-css">Copy</button></header>
+<textarea id="code-group-css" readonly spellcheck="false">${esc(groupCss(groups))}</textarea></section>
+</main>
+<script>${COPY_JS}
+${SET_GROUP_JS}
+document.addEventListener("click", async (e) => {
+  const sw = e.target.closest("[data-hex]");
+  if (sw) {
+    await navigator.clipboard.writeText(sw.dataset.hex);
+    sw.classList.add("done"); setTimeout(() => sw.classList.remove("done"), 1000);
+  }
+  const pv = e.target.closest("[data-preview]");
+  if (pv) { e.preventDefault(); devSetGroup(pv.dataset.preview); pv.dataset.preview ? (location.href = "/") : location.reload(); }
+});
+</script></body></html>`;
+}
 
 function copyPage() {
   const skin = loadSkin();
@@ -50,19 +149,9 @@ function copyPage() {
     .map(([k, v]) => `<tr><td><code>&lt;{${esc(k)}}&gt;</code></td><td><textarea id="code-m-${esc(k)}" readonly rows="1">${esc(v)}</textarea></td><td><button data-copy="m-${esc(k)}">Copy</button></td></tr>`)
     .join("");
   return `<!doctype html><html><head><meta charset="utf-8"><title>Copy to Jcink</title>
-<style>
-  body{margin:0;background:#f4f4f5;color:#18181b;font:14px/1.5 system-ui,sans-serif}
-  main{max-width:900px;margin:0 auto;padding:24px 16px}
-  h1{font-size:22px;margin:0 0 4px} h2{font-size:15px;margin:0} p{margin:0;color:#71717a;font-size:12px}
+<style>${PAGE_CSS}
   .downloads{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 24px}
   .downloads a{background:#18181b;color:#fff;text-decoration:none;padding:8px 12px;border-radius:6px;font-weight:600}
-  section{background:#fff;border:1px solid #e4e4e7;border-radius:8px;margin-bottom:12px;overflow:hidden}
-  section header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px}
-  textarea{display:block;width:100%;box-sizing:border-box;border:0;border-top:1px solid #e4e4e7;font:12px/1.4 ui-monospace,monospace;padding:10px;height:120px;resize:vertical;background:#fafafa}
-  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e4e4e7;border-radius:8px}
-  td{padding:6px 8px;border-top:1px solid #e4e4e7;vertical-align:middle} td textarea{border:1px solid #e4e4e7;height:auto;border-radius:4px}
-  button{background:#7c3aed;color:#fff;border:0;border-radius:6px;padding:6px 14px;font-weight:600;cursor:pointer}
-  button.done{background:#16a34a}
 </style></head><body><main>
 <h1>Copy to Jcink</h1>
 <p>Each box matches a section in your Admin CP. Click Copy, then paste it into the place listed under its name.</p>
@@ -75,14 +164,7 @@ ${pieces(skin).map(card).join("")}
 <p style="margin-bottom:8px">ACP &gt; Skins &amp; Templates &gt; Macros. Each key goes in its own box.</p>
 <table>${macroRows}</table>
 </main>
-<script>
-document.addEventListener("click", async (e) => {
-  const id = e.target.dataset.copy; if (!id) return;
-  await navigator.clipboard.writeText(document.getElementById("code-" + id).value);
-  e.target.textContent = "Copied!"; e.target.classList.add("done");
-  setTimeout(() => { e.target.textContent = "Copy"; e.target.classList.remove("done"); }, 1500);
-});
-new EventSource("/__live").onmessage = () => location.reload();
+<script>${COPY_JS}
 </script></body></html>`;
 }
 
@@ -107,7 +189,9 @@ http
         return;
       }
       if (p === "/__skin/stylesheet.css") return send(res, 200, "text/css", loadSkin().stylesheet);
+      const cookies = Object.fromEntries((req.headers.cookie || "").split(/;\s*/).filter(Boolean).map((c) => c.split("=")));
       if (p === "/__copy") return send(res, 200, "text/html; charset=utf-8", copyPage());
+      if (p === "/__groups") return send(res, 200, "text/html; charset=utf-8", groupsPage(cookies));
       if (p === "/__skin.xml") return send(res, 200, "application/xml", skinXml());
       if (p === "/__templates.xml") return send(res, 200, "application/xml", templatesXml());
       // Jcink's default images live on its CDN.
@@ -125,16 +209,15 @@ http
         }
       }
       if (p === "/" || p === "/index.php") {
-        const cookies = Object.fromEntries((req.headers.cookie || "").split(/;\s*/).filter(Boolean).map((c) => c.split("=")));
-        const { html, warnings } = createRenderer(Object.fromEntries(url.searchParams), cookies).page();
-        return send(res, 200, "text/html; charset=utf-8", html.replace(/<\/body>/i, `${DEV_CLIENT(warnings)}\n</body>`));
+        const { html, warnings, toolbar } = createRenderer(Object.fromEntries(url.searchParams), cookies).page();
+        return send(res, 200, "text/html; charset=utf-8", html.replace(/<\/body>/i, `${DEV_CLIENT(warnings, toolbar)}\n</body>`));
       }
       send(res, 404, "text/plain", "Not found");
     } catch (err) {
       send(res, 500, "text/html; charset=utf-8", `<pre style="padding:16px;color:#b00">${esc(err.message)}\n\n${esc(err.stack)}</pre><script>new EventSource("/__live").onmessage=()=>location.reload()</script>`);
     }
   })
-  .listen(PORT, () => console.log(`Jcink preview: http://localhost:${PORT}\nCopy to Jcink: http://localhost:${PORT}/__copy`));
+  .listen(PORT, () => console.log(`Jcink preview: http://localhost:${PORT}\nCopy to Jcink: http://localhost:${PORT}/__copy\nMember groups: http://localhost:${PORT}/__groups`));
 
 // Stylesheet edits swap in place; anything else reloads the page.
 let timer;

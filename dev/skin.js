@@ -49,9 +49,30 @@ function loadSkin() {
   };
 }
 
+// data/groups.json: [{ id, name, "clr1-hex", "clr2-hex", ... }], plus optional prefix, suffix and icon.
+function loadGroups() {
+  const groups = readJSON(path.join(DATA, "groups.json"));
+  if (!Array.isArray(groups)) throw new Error(`data/groups.json should be a list: [ { "id": 1, "name": "..." }, ... ]`);
+  groups.forEach((g, i) => {
+    if (!g || typeof g !== "object" || g.id === undefined || g.id === "" || !g.name) {
+      throw new Error(`data/groups.json: group number ${i + 1} in the list needs an "id" and a "name".`);
+    }
+  });
+  return groups.map((g) => ({ ...g, id: Number(g.id) }));
+}
+
+// A group's colours in number order: "clr1-hex", "clr2-hex", ... (a missing "#" is added).
+const groupColours = (g) =>
+  Object.keys(g)
+    .map((key) => ({ key, n: Number((key.match(/^clr(\d+)-hex$/) || [])[1]) }))
+    .filter((c) => c.n)
+    .sort((a, b) => a.n - b.n)
+    .map(({ key, n }) => ({ key, n, hex: String(g[key]).replace(/^(?!#)/, "#") }));
+
 function loadData() {
   return {
     board: readJSON(path.join(DATA, "board.json")),
+    groups: loadGroups(),
     fields: readJSON(path.join(DATA, "custom-fields.json")),
     members: readJSON(path.join(DATA, "members.json")),
     categories: readJSON(path.join(DATA, "forums.json")),
@@ -64,4 +85,4 @@ function loadData() {
   };
 }
 
-module.exports = { ROOT, SKIN, DATA, JCINK, TEMPLATES, loadSkin, loadData };
+module.exports = { ROOT, SKIN, DATA, JCINK, TEMPLATES, loadSkin, loadData, loadGroups, groupColours };

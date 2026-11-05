@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "name": "Validating",
+    "clr1-hex": "#8a8a8a",
+    "clr2-hex": "#ececec"
+  },
+  {
+    "id": 2,
+    "name": "Guests",
+    "clr1-hex": "#5c5c5c",
+    "clr2-hex": "#f0f0f0"
+  },
+  {
+    "id": 3,
+    "name": "Members",
+    "clr1-hex": "#2b6cb0",
+    "clr2-hex": "#dbe8f5"
+  },
+  {
+    "id": 4,
+    "name": "Admin",
+    "clr1-hex": "#800000",
+    "clr2-hex": "#f5dede",
+    "prefix": "<span style='color:#800000'>",
+    "suffix": "</span>"
+  },
+  {
+    "id": 5,
+    "name": "Banned",
+    "clr1-hex": "#333333",
+    "clr2-hex": "#d4d4d4"
+  }
+]

@@ -13,6 +13,17 @@ Version numbers go up like this:
 
 ---
 
+## 1.2.0 – 2026-11-05
+
+- [ 🆕 ] **Member groups** in `data/groups.json`: each group's `id`, `name` and your own colours (`clr1-hex`, `clr2-hex`, …), plus optional `prefix` and `suffix`. Starts with Jcink's five default groups: Validating, Guests, Members, Admin and Banned.
+- [ 🆕 ] A **Group** dropdown in the toolbar to preview the board as any group. `<!-- |g_id| -->`, the group name, prefix and suffix change everywhere, including the logged-in member's posts. Guests shows the logged-out view.
+- [ 🆕 ] A **Groups page** (`localhost:3000/__groups`) listing every group with its number and colours, a Preview button for each, and the colours as copyable CSS variables.
+- [ 🆕 ] Warnings when two groups share an `id`, a colour isn't a hex code, or a member's `group` doesn't match any group.
+- [ 🆕 ] A step-by-step guide to member groups (`documentation/member-groups.md`): adding groups, colours, previewing as a group, the Groups page and using `<!-- |g_id| -->` in your skin.
+- [ 🆕 ] A "Development features" section at the end of the `README`, listing the preview-only tools and linking to their guides.
+- [ 🔁 ] Member groups moved out of `data/board.json`.
+> ⚠️ If you changed `"groups"` in `data/board.json`, copy those groups into `data/groups.json` (`"title"` is now `"name"`). The preview warns you while the old `"groups"` is still there.
+
 ## 1.1.1 – 2026-11-03
 
 - [ 🆕 ] A `documentation/` folder, starting with a step-by-step guide to adding categories, forums, topics and posts (`documentation/adding-forum-content.md`).
