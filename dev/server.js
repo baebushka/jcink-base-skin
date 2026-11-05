@@ -2,6 +2,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const { spawn } = require("child_process");
 const { ROOT, SKIN, DATA, JCINK, loadSkin, loadGroups, groupStyle } = require("./skin");
 const { createRenderer } = require("./render");
 const { pieces, skinXml, templatesXml } = require("./pieces");
@@ -228,12 +229,12 @@ function cleanField(input) {
   if (fdesc.length > 250) throw new Error("Description is over 250 characters.");
   const ftype = str(input.ftype);
   if (!FIELD_TYPES[ftype]) throw new Error("Field Type must be Text Input, Text Area or Drop Down.");
-  // Options arrive one per line ("m=Male") and are stored the way Jcink exports them ("m=Male|f=Female").
+  // Options arrive one per line ("she=she/her") and are stored the way Jcink exports them ("she=she/her|he=he/him").
   const options = String(input.fcontent ?? "")
     .split(/\r?\n|\|/)
     .map((l) => l.trim())
     .filter(Boolean);
-  if (ftype === "drop" && !options.length) throw new Error("A Drop Down needs at least one option, like m=Male.");
+  if (ftype === "drop" && !options.length) throw new Error("A Drop Down needs at least one option, like she=she/her.");
   return {
     fid,
     ftitle,
@@ -317,8 +318,11 @@ function fieldsPage() {
   button.ghost{background:none;color:#7c3aed;padding:4px 8px}
   button.ghost:hover{background:#f5f3ff}
   button.danger{color:#dc2626} button.danger:hover{background:#fef2f2}
+  button.danger.armed{background:#dc2626;color:#fff}
   td.actions{white-space:nowrap;text-align:right}
   .empty{padding:16px;color:#71717a}
+  .file-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 0;font-size:12px;color:#71717a}
+  .file-bar button{background:#18181b} .file-bar button.done{background:#16a34a}
   .alert{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;margin:12px 0}
   .alert[hidden]{display:none}
   .notice{background:#f0fdf4;color:#15803d;border-color:#bbf7d0}
@@ -348,6 +352,7 @@ function fieldsPage() {
 </style></head><body><main>
 <h1>Custom profile fields</h1>
 <p>From <code>data/custom-fields.json</code>, in the same format as Jcink's export. Saving here writes the file for you. Give your sample members answers in <code>data/members.json</code> under <code>"fields"</code>.</p>
+<div class="file-bar"><button type="button" id="open-file" title="${esc(FIELDS_FILE)}">Open custom-fields.json</button><span>Opens the file on your computer, in your default app for .json files.</span></div>
 ${error ? `<div class="alert">${esc(error)}</div>` : ""}
 <div id="notice" class="alert notice" hidden></div>
 <div class="table-wrap"><table class="list">
@@ -371,11 +376,11 @@ ${error ? `<div class="alert">${esc(error)}</div>` : ""}
       <td><input type="number" name="fmaxinput" min="0" value="0"></td></tr>
     <tr><th><b>Display order (when editing and displaying) numeric 1 lowest.</b></th>
       <td><input type="number" name="forder" min="0" value="${nextOrder}"></td></tr>
-    <tr class="drop-only"><th><b>Option Content (for drop downs)</b><span>In sets, one set per line. Example for 'Gender' field:</span>
-      <span><code>m=Male</code><br><code>f=Female</code><br><code>u=Not Telling</code></span>
+    <tr class="drop-only"><th><b>Option Content (for drop downs)</b><span>In sets, one set per line. Example for 'Pronouns' field:</span>
+      <span><code>she=she/her</code><br><code>he=he/him</code><br><code>they=they/them</code><br><code>o=other</code></span>
       <span class="demo">Will produce: <select id="option-demo"></select></span>
-      <span>The key (m, f or u) is stored. When showing the field in a profile, the label is used (f=Female shows 'Female').</span></th>
-      <td><textarea name="fcontent" spellcheck="false" placeholder="m=Male&#10;f=Female&#10;u=Not Telling"></textarea></td></tr>
+      <span>The key (she, he, they or o) is stored. When showing the field in a profile, the label is used (they=they/them shows 'they/them').</span></th>
+      <td><textarea name="fcontent" spellcheck="false" placeholder="she=she/her&#10;he=he/him&#10;they=they/them&#10;o=other"></textarea></td></tr>
     ${radios("fshowreg", "<b>Include on registration page?</b><span>(Will not appear if the field cannot be edited by the member)</span>", "0")}
     ${radios("freq", "<b>Field MUST be completed and not left empty?</b><span>(Will not apply if you choose to hide below)</span>", "0")}
     ${radios("fhide", "<b>Hide from the member's profile?</b><span>If yes, only admins and super mods can see it, user can still edit <b style=\"display:inline\">if</b> the below option is set to 'Yes'</span><i>Note: This setting has no effect on &lt;!-- |field_#| --&gt; variable display in main profiles.</i>", "0")}
@@ -422,7 +427,7 @@ function refresh() {
   const demo = document.getElementById("option-demo");
   const opts = options();
   demo.innerHTML = "";
-  (opts.length ? opts : [{ label: "Male" }, { label: "Female" }, { label: "Not Telling" }]).forEach((o) => demo.add(new Option(o.label)));
+  (opts.length ? opts : [{ label: "she/her" }, { label: "he/him" }, { label: "they/them" }, { label: "other" }]).forEach((o) => demo.add(new Option(o.label)));
   document.getElementById("var-preview").textContent = "<!-- |field_" + (el("fid").value || "#") + "| -->";
   for (const c of document.querySelectorAll("[data-count]")) {
     const input = el(c.dataset.count);
@@ -464,11 +469,20 @@ function startEdit(fid) {
   form.scrollIntoView({ behavior: "smooth" });
 }
 
-async function post(body) {
-  const res = await fetch("/__fields", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+async function post(body, url = "/__fields") {
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const out = await res.json().catch(() => ({ error: "The preview server didn't answer." }));
   if (!res.ok || out.error) throw new Error(out.error || "Couldn't save.");
   return out;
+}
+
+function disarm(btn) { clearTimeout(btn.timer); btn.classList.remove("armed"); btn.textContent = "Delete"; btn.title = ""; }
+
+// A message at the top of the page: green for done, red for a problem.
+function showTop(msg, isError) {
+  const box = document.getElementById("notice");
+  box.textContent = msg; box.classList.toggle("notice", !isError); box.hidden = false;
+  box.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function showError(msg) {
@@ -489,6 +503,16 @@ form.addEventListener("submit", async (e) => {
   } catch (err) { showError(err.message); }
 });
 document.getElementById("new-field").onclick = startNew;
+document.getElementById("open-file").onclick = async (e) => {
+  const btn = e.currentTarget;
+  try {
+    await post({}, "/__fields/open");
+    btn.textContent = "Opened!"; btn.classList.add("done");
+  } catch (err) {
+    btn.textContent = "Couldn't open it"; showTop(err.message, true);
+  }
+  setTimeout(() => { btn.textContent = "Open custom-fields.json"; btn.classList.remove("done"); }, 1500);
+};
 document.getElementById("show-json").onclick = (e) => {
   const box = document.getElementById("json-out");
   box.hidden = !box.hidden;
@@ -497,12 +521,21 @@ document.getElementById("show-json").onclick = (e) => {
 document.addEventListener("click", async (e) => {
   const ed = e.target.closest("[data-edit]");
   if (ed) startEdit(ed.dataset.edit);
+  // Delete asks on the page itself (first click arms the button, second click deletes), because
+  // browsers that block pop-ups answer confirm() with "Cancel" without ever showing it.
   const del = e.target.closest("[data-delete]");
   if (del) {
     const f = FIELDS[del.dataset.delete];
-    if (!confirm("Delete field " + f.fid + " (" + f.ftitle + ") from data/custom-fields.json?\\n\\nSample members' answers for it stay in members.json, and the preview will warn about them.")) return;
+    if (!del.classList.contains("armed")) {
+      document.querySelectorAll("[data-delete].armed").forEach(disarm);
+      del.classList.add("armed"); del.textContent = "Really delete?";
+      del.title = "Click again to delete field " + f.fid + ". Sample members' answers for it stay in members.json, and the preview will warn about them.";
+      del.timer = setTimeout(() => disarm(del), 4000);
+      return;
+    }
+    clearTimeout(del.timer);
     try { await post({ delete: f.fid }); flash("Deleted field " + f.fid + " (" + f.ftitle + ")."); location.reload(); }
-    catch (err) { alert(err.message); }
+    catch (err) { disarm(del); showTop(err.message, true); }
   }
   const v = e.target.closest("[data-var]");
   if (v) { await navigator.clipboard.writeText(v.dataset.var); v.classList.add("done"); setTimeout(() => v.classList.remove("done"), 1000); }
@@ -518,6 +551,20 @@ startNew();
 // Reload when data files change, unless you're halfway through filling in the form.
 new EventSource("/__live").onmessage = () => { if (!dirty) location.reload(); };
 </script></body></html>`;
+}
+
+// Opens data/custom-fields.json in the computer's default app for .json files.
+function openFieldsFile() {
+  if (!fs.existsSync(FIELDS_FILE)) throw new Error("data/custom-fields.json doesn't exist yet. Add a field first.");
+  const [cmd, args] =
+    process.platform === "darwin" ? ["open", [FIELDS_FILE]]
+    : process.platform === "win32" ? ["cmd", ["/c", "start", '""', FIELDS_FILE]]
+    : ["xdg-open", [FIELDS_FILE]];
+  return new Promise((resolve, reject) => {
+    const child = spawn(cmd, args, { stdio: "ignore", detached: true, windowsVerbatimArguments: process.platform === "win32" });
+    child.on("error", () => reject(new Error(`Couldn't open the file. Open it yourself: ${FIELDS_FILE}`)));
+    child.on("spawn", () => { child.unref(); resolve({ ok: true }); });
+  });
 }
 
 function readBody(req) {
@@ -587,14 +634,15 @@ http
       const cookies = Object.fromEntries((req.headers.cookie || "").split(/;\s*/).filter(Boolean).map((c) => c.split("=")));
       if (p === "/__copy") return send(res, 200, "text/html; charset=utf-8", copyPage());
       if (p === "/__groups") return send(res, 200, "text/html; charset=utf-8", groupsPage(cookies));
-      if (p === "/__fields" && req.method === "POST") {
-        // Only this page may write the file: a JSON body (which other websites can't send without asking) from this origin.
+      if ((p === "/__fields" || p === "/__fields/open") && req.method === "POST") {
+        // Only the Fields page may write or open the file: a JSON body (which other websites can't send without asking) from this origin.
         const origin = req.headers.origin;
         if (!/^application\/json\b/.test(req.headers["content-type"] || "") || (origin && origin !== `http://${req.headers.host}`)) {
           return send(res, 403, "application/json", JSON.stringify({ error: "Forbidden" }));
         }
         readBody(req)
-          .then((body) => send(res, 200, "application/json", JSON.stringify(changeFields(JSON.parse(body || "{}")))))
+          .then((body) => (p === "/__fields/open" ? openFieldsFile() : changeFields(JSON.parse(body || "{}"))))
+          .then((out) => send(res, 200, "application/json", JSON.stringify(out)))
           .catch((err) => send(res, 400, "application/json", JSON.stringify({ error: err.message })));
         return;
       }

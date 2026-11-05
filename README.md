@@ -272,81 +272,17 @@ This is the **pretend forum** the preview shows. None of it goes to Jcink. Chang
 
 Jcink lets members fill in extra profile fields, such as a face claim or an age. Each field has a number, and templates show it with a **template variable** like `<!-- |field_76| -->`.
 
-This project reads your fields in **the same format Jcink exports them**, so you can paste your board's export straight in. Your sample members' answers then appear everywhere you use those variables, so you never type sample data into your templates.
+> 📘 **The full guide:** [Custom profile fields](documentation/custom-profile-fields.md) covers every field type and setting, the Fields page, sample answers, and putting your fields on Jcink.
 
-### Step 1: Put your fields in `data/custom-fields.json`
+In short:
 
-**Easiest:** export your custom profile fields from your Jcink Admin CP and paste the whole export into `data/custom-fields.json`, replacing the examples.
-
-**Or use the Fields page.** Open `localhost:3000/__fields` (or click **Fields** in the bottom-right toolbar). It lists every field with its template variable, and has a form laid out like the Admin CP's *Field Settings*. Fill it in and click **Add field**, and it's written to `data/custom-fields.json` for you. **Edit** and **Delete** change existing fields the same way, and **Show JSON** gives you the field's code to copy.
-
-**Or add a field by hand.** Each field looks like this:
-
-```json
-"76": {
-  "fid": "76",
-  "ftitle": "languages spoken",
-  "fdesc": "one per line",
-  "fcontent": "",
-  "ftype": "area",
-  "freq": "0",
-  "fhide": "0",
-  "fmaxinput": "0",
-  "fedit": "1",
-  "forder": "65",
-  "fshowreg": "0",
-  "fjsonversion": "1.00"
-}
-```
-
-To add another, copy a whole block, put a comma between blocks, and change the number in **both** places (eg. `"76":` and `"fid"`).
-
-**What each setting means.** The first column matches the column names in your Admin CP's custom fields list:
-
-| Admin CP column | Setting | Values |
-|---|---|---|
-| Field Title | `ftitle` | The field's name. `fdesc` is its description. |
-| Type | `ftype` | `"text"` (one line), `"area"` (several lines; line breaks become `<br />`) or `"drop"` (a dropdown). |
-| Template Variable | `fid` | `"76"` means you write `<!-- \|field_76\| -->` in your templates. |
-| Required | `freq` | `"1"` = yes, `"0"` = no. The preview warns you if a sample member leaves a required field empty. |
-| Hidden | `fhide` | `"1"` = yes, `"0"` = no. |
-| Show on Reg. | `fshowreg` | `"1"` = shown on the registration form. |
-| Member Editable | `fedit` | `"1"` = members can change it themselves. |
-| – | `fmaxinput` | Maximum length (`"0"` = no limit). The preview warns you if a sample answer is too long. |
-| – | `forder` | The field's position in the list. |
-| – | `fcontent` | For dropdowns: the choices, written as `key=Label\|key=Label`, for example `no=no\|yes=yes`. Jcink's export sometimes includes a stray `\r` after an option (`"no=no\r\|yes=yes"`). That's normal, and the preview ignores it. |
-
-The preview only uses the settings that change what a page looks like. Hidden, Show on Reg. and Member Editable are kept so the file stays identical to Jcink's export.
-
-### Step 2: Give your sample members answers in `data/members.json`
-
-Inside each member there's a `"fields"` section. Use the same name as the template variable:
-
-```json
-"fields": {
-  "field_1": "Zendaya",
-  "field_4": "she",
-  "field_76": "English\nSpanish"
-}
-```
-
-- For **dropdowns**, use either the key (`she`) or the label (`she/her`). The page shows the label.
-- For **multi-line** (`area`) fields, start each new line with `\n`.
-- A member who leaves a field out shows nothing there, just like on Jcink.
-
-### Step 3: Use the field in your templates
-
-Put `<!-- |field_76| -->` anywhere in `mini_profile.html`, `post_row.html`, `profile.html`, `member_list_row.html` or the wrapper:
-
-```html
-<div class="postbit">Languages: <!-- |field_76| --></div>
-```
-
-Save, and every post in the preview shows each member's answer.
-
-> The **⚠** in the bottom-right toolbar lists custom field problems: a required field left empty, an answer that's too long, a dropdown answer that isn't one of the choices, or a template using a field that isn't in `custom-fields.json`.
+1. **Add your fields to `data/custom-fields.json`.** Paste your board's export from the Admin CP (it uses the same format), or use the **Fields page** (`localhost:3000/__fields`, or **Fields** in the toolbar), which has a form like the Admin CP's and writes the file for you.
+2. **Give your sample members answers** in `data/members.json`, under `"fields"`, for example `"field_76": "English\nSpanish"`.
+3. **Use the field in your templates**, for example `<div class="postbit">Languages: <!-- |field_76| --></div>`. Every post in the preview shows each member's answer.
 
 > ⚠️ **On Jcink itself**, you also have to switch on *"Enable use of Custom Profile Field variables in templates?"* in your Admin CP, or fields won't appear in templates.
+
+---
 
 ## 7. Changing the sample forum content
 
@@ -530,7 +466,7 @@ Extra tools that make designing easier. They only exist in the preview and are n
 | Feature | What it does | Guide |
 |---|---|---|
 | 👥 **Member groups** | Keep your board's groups and their colours in `data/groups.json`, see them all on the Groups page (`localhost:3000/__groups`), and preview the board as any group from the toolbar's **Group** dropdown. | [Member groups](documentation/member-groups.md) |
-| 🏷️ **Fields page** | Add, edit and delete custom profile fields with an Admin CP-style form at `localhost:3000/__fields`. It writes `data/custom-fields.json` for you. | [Custom profile fields](#6-custom-profile-fields) |
+| 🏷️ **Fields page** | Add, edit and delete custom profile fields with an Admin CP-style form at `localhost:3000/__fields`. It writes `data/custom-fields.json` for you. | [Custom profile fields](documentation/custom-profile-fields.md#4-what-is-the-fields-page) |
 
 ---
 

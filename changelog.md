@@ -18,6 +18,9 @@ Version numbers go up like this:
 - [ 🆕 ] A **Fields page** (`localhost:3000/__fields`, or **Fields** in the toolbar) listing every custom profile field with its type, settings and a copyable template variable (`<!-- |field_76| -->`).
 - [ 🆕 ] An Admin CP-style **Field Settings** form on the Fields page to add a field. It writes `data/custom-fields.json` in Jcink's export format, suggests the next free ID and display order, and previews a dropdown's options as you type them (one `key=Label` per line).
 - [ 🆕 ] **Edit** and **Delete** for each field, plus **Show JSON** to copy a single field's code. Errors are shown for a duplicate ID, a missing title, a title or description that's too long, or a dropdown with no options.
+- [ 🆕 ] An **Open custom-fields.json** button on the Fields page that opens the file on your computer, in your default app for `.json` files.
+- [ 🆕 ] A step-by-step guide to custom profile fields (`documentation/custom-profile-fields.md`): reading and adding fields, the Fields page, field types, sample answers, using fields in your skin, putting them on Jcink, every setting, and fixing common warnings.
+- [ 🔁 ] The README's custom profile fields section is now a short summary that links to the new guide.
 
 ## 1.2.0 – 2026-11-05
 
