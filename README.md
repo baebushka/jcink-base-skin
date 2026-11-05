@@ -278,6 +278,8 @@ This project reads your fields in **the same format Jcink exports them**, so you
 
 **Easiest:** export your custom profile fields from your Jcink Admin CP and paste the whole export into `data/custom-fields.json`, replacing the examples.
 
+**Or use the Fields page.** Open `localhost:3000/__fields` (or click **Fields** in the bottom-right toolbar). It lists every field with its template variable, and has a form laid out like the Admin CP's *Field Settings*. Fill it in and click **Add field**, and it's written to `data/custom-fields.json` for you. **Edit** and **Delete** change existing fields the same way, and **Show JSON** gives you the field's code to copy.
+
 **Or add a field by hand.** Each field looks like this:
 
 ```json
@@ -528,6 +530,7 @@ Extra tools that make designing easier. They only exist in the preview and are n
 | Feature | What it does | Guide |
 |---|---|---|
 | 👥 **Member groups** | Keep your board's groups and their colours in `data/groups.json`, see them all on the Groups page (`localhost:3000/__groups`), and preview the board as any group from the toolbar's **Group** dropdown. | [Member groups](documentation/member-groups.md) |
+| 🏷️ **Fields page** | Add, edit and delete custom profile fields with an Admin CP-style form at `localhost:3000/__fields`. It writes `data/custom-fields.json` for you. | [Custom profile fields](#6-custom-profile-fields) |
 
 ---
 
