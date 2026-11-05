@@ -36,6 +36,7 @@ The page shows your whole board as a tree: each **category** in a dark box, its 
 | Add a category | **+ Add category** at the top |
 | Add a forum | **+ Forum** in the category's dark header |
 | Add a subforum | **+ Subforum** inside a forum |
+| Add a redirect forum (one that sends people to another address, like a Discord) | **+ Redirect** in the category's dark header, or **+ Redirect subforum** inside a forum |
 | Add a topic | **+ Topic** inside a forum. Fill in the topic and its first post together. |
 | Add a reply | **+ Reply** inside a topic |
 | Change something | **Edit** on its row. To move a forum or topic somewhere else, change **Goes in** or **Forum** in the form. |
@@ -49,7 +50,9 @@ When you click **Add** or **Complete Edit**, the page writes `data/forums.json` 
 - lists **your sample members** as post authors, so a post can't point to a member who doesn't exist
 - turns **Enter** in a post into a new line (`<br />`). HTML works too.
 - puts **new topics at the top** of their forum, so the board index shows them as the forum's last post
-- won't let you delete a topic's only post (delete the topic instead), or turn a forum that still has topics into a link
+- only lets you type **digits** into number boxes (IDs, views, redirected hits)
+- won't let you delete a topic's only post (delete the topic instead), or turn a forum that still has topics into a redirect forum
+- turns a regular forum into a redirect forum (or back) when you change **Redirect forum?** in its Edit form
 
 > **Open forums.json** at the top opens the file itself, if you'd rather finish something by hand. You can switch between the page and the file whenever you like.
 

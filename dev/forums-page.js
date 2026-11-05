@@ -149,7 +149,7 @@ function saveForum(cats, body) {
     const parent = forums.find((x) => same(x.f.id, where[2]) && !x.parent);
     if (!parent) throw new Error(`Forum ${where[2]} can't hold subforums: it's missing, or it's a subforum itself.`);
     if (parent.f === old) throw new Error("A forum can't be a subforum of itself.");
-    if (parent.f.redirect_url) throw new Error(`${parent.f.name} is a link forum, so it can't have subforums.`);
+    if (parent.f.redirect_url) throw new Error(`${parent.f.name} is a redirect forum, so it can't have subforums.`);
     if (old?.subforums?.length) throw new Error(`${old.name} has subforums of its own, and the preview shows one level of subforums. Move them out first.`);
     list = parent.f.subforums ||= [];
   }
@@ -157,9 +157,10 @@ function saveForum(cats, body) {
   let fresh;
   if (isLink) {
     const url = str(input.redirect_url);
-    if (!url) throw new Error("A link forum needs the web address it links to.");
-    if (old?.topics?.length) throw new Error(`${old.name} still has ${old.topics.length} topic(s). Move or delete them before turning it into a link.`);
-    if (old?.subforums?.length) throw new Error(`${old.name} still has subforums. Move or delete them before turning it into a link.`);
+    if (!url) throw new Error("A redirect forum needs the web address it redirects to.");
+    if (/[\s"<>]/.test(url)) throw new Error("The redirect address can't contain spaces, quotes or < >.");
+    if (old?.topics?.length) throw new Error(`${old.name} still has ${old.topics.length} topic(s). Move or delete them before turning it into a redirect forum.`);
+    if (old?.subforums?.length) throw new Error(`${old.name} still has subforums. Move or delete them before turning it into a redirect forum.`);
     fresh = { id, name, description: str(input.description), redirect_url: url, redirect_hits: whole(input.redirect_hits, "Redirected Hits") };
   } else {
     fresh = { id, name, description: str(input.description), new_posts: flag(input.new_posts), locked: flag(input.locked) || undefined, topics: old?.topics || [] };
@@ -191,7 +192,7 @@ function saveTopic(cats, body, members) {
   if (clash) throw new Error(`Topic ${id} already exists (${clash.t.title}). Pick another ID.`);
   const target = forums.find((x) => same(x.f.id, input.forum));
   if (!target) throw new Error("Pick the forum this topic goes in.");
-  if (target.f.redirect_url) throw new Error(`${target.f.name} is a link forum, so it can't have topics.`);
+  if (target.f.redirect_url) throw new Error(`${target.f.name} is a redirect forum, so it can't have topics.`);
   const fresh = {
     id,
     title: text(input.title, "Topic Title"),
@@ -370,11 +371,11 @@ function page() {
   const forumItem = (f, i, n, isSub) => {
     const a = `data-kind="forum" data-id="${esc(f.id)}"`;
     const view = `<a href="/index.php?showforum=${esc(f.id)}" target="jcink-preview">View</a>`;
-    const actions = `<span class="actions">${arrows(a, i, n)}${btn("edit", a, "Edit")}${del(a, f.redirect_url ? `link forum "${f.name}"` : `forum "${f.name}", its ${plural(countTopics(f), "topic")} and ${plural(countPosts(f), "post")}`)}</span>`;
+    const actions = `<span class="actions">${arrows(a, i, n)}${btn("edit", a, "Edit")}${del(a, f.redirect_url ? `redirect forum "${f.name}"` : `forum "${f.name}", its ${plural(countTopics(f), "topic")} and ${plural(countPosts(f), "post")}`)}</span>`;
     const kind = isSub ? "Subforum" : "Forum";
     if (f.redirect_url) {
       return `<div class="row forum leaf"><span class="caret"></span>
-    <span class="main"><b>${esc(f.name)}</b>${tag("link", "Link")}${f.description ? `<p>${esc(excerpt(f.description))}</p>` : ""}
+    <span class="main"><b>${esc(f.name)}</b>${tag("link", "Redirect")}${f.description ? `<p>${esc(excerpt(f.description))}</p>` : ""}
       <span class="meta">${kind} ${esc(f.id)} &middot; &rarr; ${esc(f.redirect_url)} &middot; ${plural(Number(f.redirect_hits) || 0, "hit")}</span></span>${actions}</div>`;
     }
     const subs = f.subforums || [];
@@ -388,7 +389,7 @@ function page() {
   <div class="kids">
     ${subs.map((s, j) => forumItem(s, j, subs.length, true)).join("")}
     ${tps.map((t, j) => topicItem(t, j, tps.length)).join("") || '<p class="empty">No topics yet.</p>'}
-    <div class="add">${btn("add", `data-kind="topic" data-forum="${esc(f.id)}"`, "+ Topic")}${isSub ? "" : btn("add", `data-kind="forum" data-parent="f-${esc(f.id)}"`, "+ Subforum")}</div>
+    <div class="add">${btn("add", `data-kind="topic" data-forum="${esc(f.id)}"`, "+ Topic")}${isSub ? "" : btn("add", `data-kind="forum" data-parent="f-${esc(f.id)}"`, "+ Subforum") + btn("add", `data-kind="forum" data-redirect="1" data-parent="f-${esc(f.id)}"`, "+ Redirect subforum")}</div>
   </div>
 </details>`;
   };
@@ -398,7 +399,7 @@ function page() {
     const fs_ = c.forums || [];
     return `<section class="cat">
   <header><div><span class="kind">Category ${esc(c.id)}</span><h2>${esc(c.name)}</h2><p>${plural(fs_.length, "forum")} &middot; <a href="/index.php?c=${esc(c.id)}" target="jcink-preview">View</a></p></div>
-    <span class="actions">${btn("add", `data-kind="forum" data-parent="c-${esc(c.id)}"`, "+ Forum")}${arrows(a, i, cats.length)}${btn("edit", a, "Edit")}${del(a, `category "${c.name}", its ${plural(fs_.length, "forum")} and everything in them`)}</span></header>
+    <span class="actions">${btn("add", `data-kind="forum" data-parent="c-${esc(c.id)}"`, "+ Forum")}${btn("add", `data-kind="forum" data-redirect="1" data-parent="c-${esc(c.id)}"`, "+ Redirect")}${arrows(a, i, cats.length)}${btn("edit", a, "Edit")}${del(a, `category "${c.name}", its ${plural(fs_.length, "forum")} and everything in them`)}</span></header>
   <div class="tree">${fs_.map((f, j) => forumItem(f, j, fs_.length, false)).join("") || '<p class="empty">No forums yet.</p>'}</div>
 </section>`;
   };
@@ -467,7 +468,7 @@ ${cats.map(catSection).join("") || '<div class="none">No categories yet. Add one
 <form id="form-category" data-kind="category" autocomplete="off" novalidate hidden>${formHead()}
   <table>
     <tr><th><b>Category ID</b><span>Its page: <code class="id-preview" data-pattern="index.php?c=#"></code></span><i>Unique among categories. Use your board's number if you're copying one.</i></th>
-      <td><input type="number" name="id" min="1"></td></tr>
+      <td><input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-digits name="id"></td></tr>
     <tr><th><b>Category Name</b></th><td><input type="text" name="name" maxlength="200"></td></tr>
   </table>${footer}
 </form>
@@ -475,13 +476,13 @@ ${cats.map(catSection).join("") || '<div class="none">No categories yet. Add one
 <form id="form-forum" data-kind="forum" autocomplete="off" novalidate hidden>${formHead()}
   <table>
     <tr><th><b>Forum ID</b><span>Its page: <code class="id-preview" data-pattern="index.php?showforum=#"></code></span><i>Unique among all forums and subforums.</i></th>
-      <td><input type="number" name="id" min="1"></td></tr>
+      <td><input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-digits name="id"></td></tr>
     <tr><th><b>Forum Name</b></th><td><input type="text" name="name" maxlength="200"></td></tr>
     <tr><th><b>Description</b><span>Shown under the name. HTML allowed.</span></th><td><textarea name="description"></textarea></td></tr>
     <tr><th><b>Goes in</b><span>A category, or another forum to make this a subforum.</span></th><td><select name="parent"></select></td></tr>
-    ${radios("is_link", "<b>Is this a link to another website?</b><span>A link forum has no topics. It uses your Redirect Row template.</span>", "0")}
-    <tr class="link-only"><th><b>Web address</b><span>Where the forum links to.</span></th><td><input type="text" name="redirect_url" placeholder="https://discord.com"></td></tr>
-    <tr class="link-only"><th><b>Redirected Hits</b><span>The number shown for a link forum.</span></th><td><input type="number" name="redirect_hits" min="0"></td></tr>
+    ${radios("is_link", "<b>Redirect forum?</b><span>Yes sends people to another web address instead of showing topics, like a Discord or a site guide. It uses your Redirect Row template.</span>", "0")}
+    <tr class="link-only"><th><b>Redirect URL</b><span>Where the forum sends people. Another website (<code>https://discord.com</code>) or a page on your board (<code>index.php?showtopic=1</code>).</span></th><td><input type="text" name="redirect_url" placeholder="https://discord.com"></td></tr>
+    <tr class="link-only"><th><b>Redirected Hits</b><span>How many times it's been clicked: <code>&lt;!-- |redirect_hits| --&gt;</code> in the Redirect Row.</span></th><td><input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-digits name="redirect_hits"></td></tr>
     ${radios("new_posts", "<b>Show the \"new posts\" icon?</b><span>No shows the \"no new posts\" icon.</span>", "0").replace("<tr>", '<tr class="forum-only">')}
     ${radios("locked", "<b>Read-only forum?</b><span>Shows the read-only forum icon.</span>", "0").replace("<tr>", '<tr class="forum-only">')}
   </table>${footer}
@@ -490,13 +491,13 @@ ${cats.map(catSection).join("") || '<div class="none">No categories yet. Add one
 <form id="form-topic" data-kind="topic" autocomplete="off" novalidate hidden>${formHead()}
   <table>
     <tr><th><b>Topic ID</b><span>Its page: <code class="id-preview" data-pattern="index.php?showtopic=#"></code></span><i>Unique among all topics.</i></th>
-      <td><input type="number" name="id" min="1"></td></tr>
+      <td><input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-digits name="id"></td></tr>
     <tr><th><b>Forum</b><span>New and moved topics go to the top of the forum, because the board index shows the first topic as the forum's last post.</span></th><td><select name="forum"></select></td></tr>
     <tr><th><b>Topic Title</b></th><td><input type="text" name="title" maxlength="200"></td></tr>
     <tr><th><b>Topic Description</b><span>The line under the title. Can be empty.</span></th><td><input type="text" name="description"></td></tr>
     <tr><th><b>Type</b><span>Pinned topics are listed under "Important Topics".</span></th>
       <td><select name="type"><option value="regular">Regular</option><option value="pinned">Pinned</option></select></td></tr>
-    <tr><th><b>Views</b></th><td><input type="number" name="views" min="0"></td></tr>
+    <tr><th><b>Views</b></th><td><input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-digits name="views"></td></tr>
     ${radios("hot", "<b>Hot topic?</b><span>Shows the hot topic icon.</span>", "0")}
     ${radios("new_posts", "<b>Has new posts?</b><span>Shows the new posts icon and a go-to-newest-post link.</span>", "0")}
     ${radios("locked", "<b>Closed topic?</b><span>Shows the closed topic icon.</span>", "0")}
@@ -582,10 +583,11 @@ function openForm(kind, ctx) {
     }
     form.elements.parent.innerHTML = optionsHtml(opts);
     const parent = ctx.parent || (self ? (self.parent ? "f-" + self.parent.id : "c-" + self.cat.id) : "");
-    title = editing.original != null ? "Edit forum: " + v.name : parent.startsWith("f-") ? "Add a subforum" : "Add a forum";
+    const redirect = editing.original != null ? !!v.redirect_url : !!ctx.redirect;
+    title = (editing.original != null ? "Edit " : "Add a ") + (redirect ? "redirect " : "") + (parent.startsWith("f-") ? "subforum" : "forum") + (editing.original != null ? ": " + v.name : "");
     set(form, "id", v.id ?? NEXT.forum); set(form, "name", v.name); set(form, "description", v.description);
     set(form, "parent", parent);
-    set(form, "is_link", !!v.redirect_url); set(form, "redirect_url", v.redirect_url); set(form, "redirect_hits", v.redirect_hits ?? 0);
+    set(form, "is_link", redirect); set(form, "redirect_url", v.redirect_url); set(form, "redirect_hits", v.redirect_hits ?? 0);
     set(form, "new_posts", v.new_posts); set(form, "locked", v.locked);
   }
 
@@ -652,7 +654,16 @@ function remember() { store.set("dev_forums_scroll", JSON.stringify({ y: scrollY
 function flash(msg) { remember(); store.set("dev_forums_notice", JSON.stringify({ msg, at: Date.now() })); }
 function reload() { dirty = false; location.reload(); }
 
-dlg.addEventListener("input", () => { dirty = true; refresh(); });
+// Number fields take digits only: anything else typed or pasted is dropped, and the cursor stays put.
+dlg.addEventListener("input", (e) => {
+  const t = e.target;
+  if (t.matches("[data-digits]") && /[^0-9]/.test(t.value)) {
+    const caret = t.value.slice(0, t.selectionStart).replace(/[^0-9]/g, "").length;
+    t.value = t.value.replace(/[^0-9]/g, "");
+    t.setSelectionRange(caret, caret);
+  }
+  dirty = true; refresh();
+});
 dlg.addEventListener("change", refresh);
 dlg.addEventListener("click", (e) => { if (e.target.closest("[data-close]")) closeForm(); });
 dlg.addEventListener("submit", async (e) => {
@@ -696,7 +707,7 @@ document.querySelector("main").addEventListener("click", async (e) => {
   if (!b || dlg.contains(b)) return;
   e.preventDefault(); // buttons sit inside <summary>; don't fold the row
   const act = b.dataset.act;
-  if (act === "add") openForm(b.dataset.kind, { parent: b.dataset.parent, forum: b.dataset.forum, topic: b.dataset.topic });
+  if (act === "add") openForm(b.dataset.kind, { parent: b.dataset.parent, forum: b.dataset.forum, topic: b.dataset.topic, redirect: b.dataset.redirect === "1" });
   if (act === "edit") {
     const t = target(b);
     openForm(t.kind, { original: t.kind === "post" ? null : t.id, topic: t.topic, index: t.index, values: values(b) });

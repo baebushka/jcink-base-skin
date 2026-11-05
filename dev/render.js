@@ -360,6 +360,11 @@ function createRenderer(query, cookies = {}) {
   function forumPage(id) {
     const f = forumById(id);
     if (!f) return notFound(`Forum ${id} isn't in data/forums.json`);
+    // On Jcink, opening a redirect forum sends you straight to its address; the preview stays put and links to it.
+    if (f.redirect_url) {
+      const url = String(f.redirect_url).replace(/&/g, "&amp;").replace(/'/g, "&#39;").replace(/</g, "&lt;");
+      return notFound(`${f.name} is a redirect forum. On Jcink, opening it sends you to <a href='${url}'>${url}</a>.`);
+    }
     let html = "";
     if (f.subforums?.length) {
       html += template("subf_head", { forum_id: f.id }, { FORUM_ROWS: forumRows(f.subforums, f.cat) });
