@@ -13,6 +13,15 @@ Version numbers go up like this:
 
 ---
 
+## 1.4.0 – 2026-11-05
+
+- [ 🆕 ] A **Forums page** (`localhost:3000/__forums`, or **Forums** in the toolbar) showing the whole board as a tree: categories, forums, subforums, topics and posts, with **View** links to each one in the preview.
+- [ 🆕 ] Admin CP-style forms on the Forums page to **add and edit** categories, forums (including link forums and subforums), topics (with their first post) and replies. It writes `data/forums.json` for you, in the same layout as the hand-written file.
+- [ 🆕 ] **↑ / ↓** to reorder, and **Delete** (click twice to confirm) for every item. Forums and topics can be moved to another category or forum by editing them.
+- [ 🆕 ] The Forums page suggests the next free ID and gives an error for a duplicate ID, an unknown post author, an empty post, deleting a topic's only post, a subforum inside a subforum, or turning a forum that still has topics into a link.
+- [ 🆕 ] An **Open forums.json** button on the Forums page, and a new "The easy way: the Forums page" section in `documentation/adding-forum-content.md`.
+- [ 🔁 ] The helper pages now share their styles and file-opening code (`dev/page-kit.js`). The Fields page looks and works the same.
+
 ## 1.3.0 – 2026-11-05
 
 - [ 🆕 ] A **Fields page** (`localhost:3000/__fields`, or **Fields** in the toolbar) listing every custom profile field with its type, settings and a copyable template variable (`<!-- |field_76| -->`).

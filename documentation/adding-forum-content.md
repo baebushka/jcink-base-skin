@@ -6,10 +6,13 @@ You don't need to know how to code. You'll copy a small block of text, paste it 
 
 > 💡 Keep the preview running (`npm run dev`) while you edit. Every time you save, the page updates, so you see right away whether your change worked.
 
+> 🗂️ **Rather not edit the file by hand?** Use the [Forums page](#0-the-easy-way-the-forums-page) instead. It does everything in this guide with forms.
+
 ---
 
 ## Contents
 
+0. [The easy way: the Forums page](#0-the-easy-way-the-forums-page)
 1. [How the file is organized](#1-how-the-file-is-organized)
 2. [Three rules to remember](#2-three-rules-to-remember)
 3. [Add a category](#3-add-a-category)
@@ -19,6 +22,38 @@ You don't need to know how to code. You'll copy a small block of text, paste it 
 7. [Extras: subforums, link forums, pinned and hot topics](#7-extras)
 8. [Every setting explained](#8-every-setting-explained)
 9. [If something goes wrong](#9-if-something-goes-wrong)
+
+---
+
+## 0. The easy way: the Forums page
+
+With the preview running, click **Forums** in the toolbar, or go to **http://localhost:3000/__forums**.
+
+The page shows your whole board as a tree: each **category** in a dark box, its **forums** (and subforums) under it, and each forum's **topics** and **posts**. Click a forum or topic to fold it open.
+
+| To… | Click |
+|---|---|
+| Add a category | **+ Add category** at the top |
+| Add a forum | **+ Forum** in the category's dark header |
+| Add a subforum | **+ Subforum** inside a forum |
+| Add a topic | **+ Topic** inside a forum. Fill in the topic and its first post together. |
+| Add a reply | **+ Reply** inside a topic |
+| Change something | **Edit** on its row. To move a forum or topic somewhere else, change **Goes in** or **Forum** in the form. |
+| Change the order | **↑** and **↓** on its row |
+| Delete something | **Delete**, then **Really delete?** to confirm. Deleting a category or forum deletes everything inside it. |
+| See it on the board | **View** on its row |
+
+When you click **Add** or **Complete Edit**, the page writes `data/forums.json` for you, and the preview updates. The page also:
+
+- **suggests the next free ID** for each new category, forum and topic, and stops you from using one that's taken
+- lists **your sample members** as post authors, so a post can't point to a member who doesn't exist
+- turns **Enter** in a post into a new line (`<br />`). HTML works too.
+- puts **new topics at the top** of their forum, so the board index shows them as the forum's last post
+- won't let you delete a topic's only post (delete the topic instead), or turn a forum that still has topics into a link
+
+> **Open forums.json** at the top opens the file itself, if you'd rather finish something by hand. You can switch between the page and the file whenever you like.
+
+The rest of this guide explains the file, for when you want to edit it directly.
 
 ---
 
