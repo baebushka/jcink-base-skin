@@ -15,12 +15,15 @@ Version numbers go up like this:
 
 ## 1.2.0 – 2026-11-05
 
-- [ 🆕 ] **Member groups** in `data/groups.json`: each group's `id`, `name` and your own colours (`clr1-hex`, `clr2-hex`, …), plus optional `prefix` and `suffix`. Starts with Jcink's five default groups: Validating, Guests, Members, Admin and Banned.
+- [ 🆕 ] **Member groups** in `data/groups.json`: each group's `id`, `name`, hex colours (`clr1-hex`, `clr2-hex`, …) and any number of other CSS variables (for example `"radius": "6px"`), plus an optional `icon`. Each colour is also converted to RGB (`--clr1-rgb: 77, 182, 172;`). Starts with Jcink's five default groups: Validating, Guests, Members, Admin and Banned.
 - [ 🆕 ] A **Group** dropdown in the toolbar to preview the board as any group. `<!-- |g_id| -->`, the group name, prefix and suffix change everywhere, including the logged-in member's posts. Guests shows the logged-out view.
-- [ 🆕 ] A **Groups page** (`localhost:3000/__groups`) listing every group with its number and colours, a Preview button for each, and the colours as copyable CSS variables.
-- [ 🆕 ] Warnings when two groups share an `id`, a colour isn't a hex code, or a member's `group` doesn't match any group.
+- [ 🆕 ] A **Groups page** (`localhost:3000/__groups`) listing every group with its number, colours (hex and RGB) and CSS variables, plus a Preview button for each.
+- [ 🆕 ] A **Generate** button on the Groups page that builds one CSS rule per group (selectors `#g-3, .g-3, #m-3, .m-3, .gr-3, .group-3, .members, #members`) with its hex colours, RGB colours and other variables. Ticking **Generate gradient?** also builds `--gradient-10` to `--gradient-00` lines to paste into `body`.
+- [ 🆕 ] Warnings when two groups share an `id`, a colour isn't a 3- or 6-digit hex code, a CSS variable has an invalid name or contains HTML, or a member's `group` doesn't match any group.
 - [ 🆕 ] A step-by-step guide to member groups (`documentation/member-groups.md`): adding groups, colours, previewing as a group, the Groups page and using `<!-- |g_id| -->` in your skin.
 - [ 🆕 ] A "Development features" section at the end of the `README`, listing the preview-only tools and linking to their guides.
+- [ 🔁 ] Every group's name prefix is now `<span class='g-ID'>` and its suffix `</span>` (for example `g-1`, `g-4`), so names are styled per group in the stylesheet. Admin's name is no longer red by default.
+- [ 🔁 ] The starter Post Row's group class is now `g-<!-- |g_id| -->` instead of `group<!-- |g_id| -->-<!-- |post_class| -->`, matching the `g-ID` pattern.
 - [ 🔁 ] Member groups moved out of `data/board.json`.
 > ⚠️ If you changed `"groups"` in `data/board.json`, copy those groups into `data/groups.json` (`"title"` is now `"name"`). The preview warns you while the old `"groups"` is still there.
 

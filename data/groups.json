@@ -22,8 +22,7 @@
     "name": "Admin",
     "clr1-hex": "#800000",
     "clr2-hex": "#f5dede",
-    "prefix": "<span style='color:#800000'>",
-    "suffix": "</span>"
+    "name-weight": "bold"
   },
   {
     "id": 5,

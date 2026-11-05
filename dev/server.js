@@ -2,7 +2,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const { ROOT, SKIN, DATA, JCINK, loadSkin, loadGroups, groupColours } = require("./skin");
+const { ROOT, SKIN, DATA, JCINK, loadSkin, loadGroups, groupStyle } = require("./skin");
 const { createRenderer } = require("./render");
 const { pieces, skinXml, templatesXml } = require("./pieces");
 
@@ -77,30 +77,70 @@ document.addEventListener("click", async (e) => {
 });
 new EventSource("/__live").onmessage = () => location.reload();`;
 
-// CSS custom properties per group, for a class like g-<!-- |g_id| --> in your wrapper or templates.
+// "Board Owner" -> "board-owner", for the .board-owner / #board-owner selectors.
+const nameSlug = (name) => String(name).replace(/<[^>]*>/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+// One rule per group: its hex colours, the same colours as RGB, then its other CSS variables.
 function groupCss(groups) {
-  const rules = groups.map((g) => {
-    const props = groupColours(g).map((c) => `--clr${c.n}: ${c.hex};`).join(" ");
-    return `/* ${g.name.replace(/\*\//g, "")} */\n.g-${g.id} { ${props} }`;
-  });
-  return `/* Member group colours from data/groups.json.\n   Add class="g-<!-- |g_id| -->" to an element, then use var(--clr1), var(--clr2), ... inside it. */\n${rules.join("\n")}\n`;
+  return (
+    groups
+      .map((g) => {
+        const { colours, vars } = groupStyle(g);
+        const slug = nameSlug(g.name);
+        const named = /^[a-z]/.test(slug) ? `,\n.${slug}, #${slug}` : ""; // a class can't start with a number
+        const blocks = [
+          colours.map((c) => `--clr${c.n}-hex: ${c.hex};`),
+          colours.map((c) => `--clr${c.n}-rgb: ${c.rgb};`),
+          vars.map((v) => `${v.name}: ${v.value};`),
+        ].filter((b) => b.length);
+        const id = g.id;
+        return `/* #${id} ${String(g.name).replace(/\*\//g, "")} */
+#g-${id}, .g-${id}, #m-${id}, .m-${id}, .gr-${id}, .group-${id}${named} {
+${blocks.map((b) => b.join("\n")).join("\n\n")}
+}`;
+      })
+      .join("\n\n") + "\n"
+  );
+}
+
+// Gradient stops built from every colour number any group uses, at a range of opacities.
+const GRADIENT_STEPS = [["10", "0.10"], ["25", "0.25"], ["35", "0.35"], ["50", "0.50"], ["65", "0.65"], ["75", "0.75"], ["00", "1"]];
+function gradientCss(groups) {
+  const numbers = [...new Set(groups.flatMap((g) => groupStyle(g).colours.map((c) => c.n)))].sort((a, b) => a - b);
+  if (!numbers.length) return "";
+  return GRADIENT_STEPS.map(([label, alpha]) => `--gradient-${label}: ${numbers.map((n) => `rgba(var(--clr${n}-rgb), ${alpha})`).join(", ")};`).join("\n") + "\n";
+}
+
+// Groups that are missing a colour the gradient uses (their gradient won't work).
+function gradientGaps(groups) {
+  const numbers = new Set(groups.flatMap((g) => groupStyle(g).colours.map((c) => c.n)));
+  return groups
+    .map((g) => {
+      const has = new Set(groupStyle(g).colours.map((c) => c.n));
+      const missing = [...numbers].filter((n) => !has.has(n)).sort((a, b) => a - b);
+      return missing.length ? `${g.name} has no ${missing.map((n) => `clr${n}-hex`).join(", ")}` : null;
+    })
+    .filter(Boolean);
 }
 
 function groupsPage(cookies) {
   const groups = loadGroups();
   const current = groups.some((g) => g.id === Number(cookies.dev_group)) ? Number(cookies.dev_group) : null;
   const swatch = (c) =>
-    `<button class="swatch" data-hex="${esc(c.hex)}" title="Copy ${esc(c.key)}"><i style="background:${esc(c.hex)}"></i><span><b>clr${c.n}</b> ${esc(c.hex)}</span></button>`;
+    `<button class="swatch" data-hex="${esc(c.hex)}" title="Copy ${esc(c.key)}"><i style="background:${esc(c.hex)}"></i><span><b>clr${c.n}</b> ${esc(c.hex)} <em>${esc(c.rgb)}</em></span></button>`;
   const rows = groups
-    .map(
-      (g) => `<tr${g.id === current ? ' class="current"' : ""}>
+    .map((g) => {
+      const { colours, vars, problems } = groupStyle(g);
+      return `<tr${g.id === current ? ' class="current"' : ""}>
   <td><code>${g.id}</code></td>
-  <td><b>${esc(g.name)}</b>${g.id === current ? ' <span class="tag">previewing</span>' : ""}</td>
-  <td><div class="swatches">${groupColours(g).map(swatch).join("") || '<p>No <code>clr#-hex</code> colours</p>'}</div></td>
+  <td><b>${esc(g.name)}</b>${g.id === current ? ' <span class="tag">previewing</span>' : ""}${problems.map((p) => `<p class="problem">&#9888; ${esc(p)}</p>`).join("")}</td>
+  <td><div class="swatches">${colours.map(swatch).join("") || "<p>No <code>clr#-hex</code> colours</p>"}</div></td>
+  <td>${vars.map((v) => `<code class="var">${esc(v.name)}: ${esc(v.value)}</code>`).join("") || "<p>&ndash;</p>"}</td>
   <td><button data-preview="${g.id}">Preview</button></td>
-</tr>`
-    )
+</tr>`;
+    })
     .join("");
+  const gaps = gradientGaps(groups);
   return `<!doctype html><html><head><meta charset="utf-8"><title>Member groups</title>
 <style>${PAGE_CSS}
   th{text-align:left;font-size:12px;color:#71717a;font-weight:600;border-top:0}
@@ -110,21 +150,45 @@ function groupsPage(cookies) {
   button.swatch{display:flex;align-items:center;gap:6px;background:#fff;color:#18181b;border:1px solid #e4e4e7;padding:3px 8px 3px 3px;font:12px ui-monospace,monospace}
   button.swatch i{width:20px;height:20px;border-radius:4px;box-shadow:inset 0 0 0 1px #0002}
   button.swatch.done{background:#dcfce7}
+  button.swatch em{font-style:normal;color:#71717a}
+  code.var{display:block;font-size:12px;white-space:nowrap}
+  p.problem{color:#b45309;margin-top:2px}
   .bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:16px 0 12px;flex-wrap:wrap}
   .bar a{color:#7c3aed}
-  @media (max-width:600px){ td:nth-child(4),th:nth-child(4){display:none} }
+  .generate{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:8px 0 12px}
+  .generate label{display:flex;align-items:center;gap:6px;cursor:pointer}
+  .table-wrap{overflow-x:auto}
+  section textarea{height:260px}
+  @media (max-width:600px){ td:nth-child(5),th:nth-child(5){display:none} }
 </style></head><body><main>
 <h1>Member groups</h1>
-<p>From <code>data/groups.json</code>. Jcink prints a member's group number with <code>&lt;!-- |g_id| --&gt;</code>. Click a colour to copy it, or <b>Preview</b> to see the board as that group.</p>
+<p>From <code>data/groups.json</code>. Jcink prints a member's group number with <code>&lt;!-- |g_id| --&gt;</code>. Click a colour to copy its hex code, or <b>Preview</b> to see the board as that group.</p>
 <div class="bar"><span>${current ? `Previewing as <b>${esc(groups.find((g) => g.id === current).name)}</b>.` : "Previewing as the viewer's own group."}</span>
   ${current ? '<a href="#" data-preview="">Back to own group</a>' : ""}</div>
-<table><tr><th>ID</th><th>Name</th><th>Colours</th><th></th></tr>${rows}</table>
-<h2 style="margin:24px 0 8px">Group colours as CSS</h2>
-<section><header><div><h2>CSS variables</h2><p>Paste into your stylesheet if you want to use them</p></div><button data-copy="group-css">Copy</button></header>
+<div class="table-wrap"><table><tr><th>ID</th><th>Name</th><th>Colours</th><th>CSS variables</th><th></th></tr>${rows}</table></div>
+<h2 style="margin:24px 0 4px">Generate CSS</h2>
+<p>Builds one CSS rule per group, with every colour as hex and RGB, plus the group's other CSS variables.</p>
+<div class="generate"><button id="generate">Generate</button><label><input type="checkbox" id="gen-gradient"> Generate gradient?</label></div>
+<section id="out-groups" hidden><header><div><h2>Group CSS</h2><p>Paste into your stylesheet</p></div><button data-copy="group-css">Copy</button></header>
 <textarea id="code-group-css" readonly spellcheck="false">${esc(groupCss(groups))}</textarea></section>
+<section id="out-gradient" hidden><header><div><h2>Gradients</h2><p>Paste inside your stylesheet's <code>body { }</code> rule. It only works when <code>&lt;body&gt;</code> has a group class, like <code>class="g-&lt;!-- |g_id| --&gt;"</code>.</p>${
+    gaps.length ? `<p class="problem">&#9888; ${esc(gaps.join("; "))}. Their gradients won't work until you add those colours.</p>` : ""
+  }</div><button data-copy="gradient-css">Copy</button></header>
+<textarea id="code-gradient-css" readonly spellcheck="false">${esc(gradientCss(groups) || "/* No group has a clr#-hex colour yet. */")}</textarea></section>
 </main>
 <script>${COPY_JS}
 ${SET_GROUP_JS}
+// Generate shows the CSS. The choice is kept for this tab, so the output stays after a live reload.
+const store = { get: (k) => { try { return sessionStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch {} } };
+const gradientBox = document.getElementById("gen-gradient");
+gradientBox.checked = store.get("dev_gen_gradient") === "1";
+function showGenerated() {
+  document.getElementById("out-groups").hidden = false;
+  document.getElementById("out-gradient").hidden = !gradientBox.checked;
+}
+document.getElementById("generate").onclick = () => { store.set("dev_generated", "1"); showGenerated(); };
+gradientBox.onchange = () => { store.set("dev_gen_gradient", gradientBox.checked ? "1" : "0"); if (store.get("dev_generated")) showGenerated(); };
+if (store.get("dev_generated")) showGenerated();
 document.addEventListener("click", async (e) => {
   const sw = e.target.closest("[data-hex]");
   if (sw) {

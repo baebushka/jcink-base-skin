@@ -61,13 +61,52 @@ function loadGroups() {
   return groups.map((g) => ({ ...g, id: Number(g.id) }));
 }
 
-// A group's colours in number order: "clr1-hex", "clr2-hex", ... (a missing "#" is added).
-const groupColours = (g) =>
-  Object.keys(g)
-    .map((key) => ({ key, n: Number((key.match(/^clr(\d+)-hex$/) || [])[1]) }))
-    .filter((c) => c.n)
-    .sort((a, b) => a.n - b.n)
-    .map(({ key, n }) => ({ key, n, hex: String(g[key]).replace(/^(?!#)/, "#") }));
+// Group settings that aren't CSS. "prefix"/"suffix" are from older versions and only trigger a warning.
+const GROUP_SETTINGS = new Set(["id", "name", "icon", "prefix", "suffix"]);
+
+// Splits a group into its colours ("clr1-hex": "#4DB6AC" -> hex + "77, 182, 172") and its other
+// CSS variables ("radius": "6px" -> --radius: 6px), plus problems to warn about.
+function groupStyle(g) {
+  const colours = [];
+  const vars = [];
+  const problems = [];
+  for (const [key, raw] of Object.entries(g)) {
+    if (GROUP_SETTINGS.has(key)) continue;
+    const clr = key.match(/^clr(\d+)-hex$/);
+    if (clr) {
+      const m = String(raw).trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+      if (!m) {
+        problems.push(`"${key}" ("${raw}") isn't a hex colour like #4DB6AC`);
+        continue;
+      }
+      const hex = (m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1]).toUpperCase();
+      const rgb = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(", ");
+      colours.push({ key, n: Number(clr[1]), hex: `#${hex}`, rgb });
+      continue;
+    }
+    if (/^clr\d+-rgb$/.test(key)) {
+      problems.push(`"${key}" is made for you from "${key.replace(/-rgb$/, "-hex")}". Remove it.`);
+      continue;
+    }
+    const name = key.replace(/^--/, "");
+    if (!/^[a-zA-Z_][a-zA-Z0-9_-]*$/.test(name)) {
+      problems.push(`"${key}" isn't a valid CSS variable name. Use letters, numbers, - and _.`);
+      continue;
+    }
+    const value = typeof raw === "string" || typeof raw === "number" ? String(raw).trim() : "";
+    if (!value) {
+      problems.push(`"${key}" should be a CSS value, like "6px" or "bold"`);
+      continue;
+    }
+    if (/[<>{};]/.test(value)) {
+      problems.push(`"${key}" can't contain HTML or the characters < > { } ;. It's a CSS value only.`);
+      continue;
+    }
+    vars.push({ key, name: `--${name}`, value });
+  }
+  colours.sort((a, b) => a.n - b.n);
+  return { colours, vars, problems };
+}
 
 function loadData() {
   return {
@@ -85,4 +124,4 @@ function loadData() {
   };
 }
 
-module.exports = { ROOT, SKIN, DATA, JCINK, TEMPLATES, loadSkin, loadData, loadGroups, groupColours };
+module.exports = { ROOT, SKIN, DATA, JCINK, TEMPLATES, loadSkin, loadData, loadGroups, groupStyle };

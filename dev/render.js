@@ -1,5 +1,5 @@
 // Builds board pages the way Jcink does: data -> HTML templates -> wrapper -> macros.
-const { loadSkin, loadData, groupColours } = require("./skin");
+const { loadSkin, loadData, groupStyle } = require("./skin");
 
 const GUEST_GROUP = 2; // Jcink's built-in Guests group
 
@@ -18,9 +18,7 @@ function createRenderer(query, cookies = {}) {
   for (const g of groups) {
     if (groupById.has(g.id)) warnings.add(`data/groups.json: two groups use "id": ${g.id}. Give one of them a new number.`);
     groupById.set(g.id, g);
-    for (const c of groupColours(g)) {
-      if (!/^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(c.hex)) warnings.add(`data/groups.json: ${g.name}'s "${c.key}" ("${g[c.key]}") isn't a hex colour`);
-    }
+    for (const problem of groupStyle(g).problems) warnings.add(`data/groups.json: ${g.name}'s ${problem}`);
   }
   if (board.groups) warnings.add(`data/board.json: "groups" is no longer used. Member groups now live in data/groups.json.`);
 
@@ -70,7 +68,11 @@ function createRenderer(query, cookies = {}) {
       warnings.add(`Group ${id} isn't in data/groups.json`);
       return { title: "", prefix: "", suffix: "", icon: "" };
     }
-    return { title: g.name, prefix: g.prefix || "", suffix: g.suffix || "", icon: g.icon || "" };
+    // Every group's name prefix/suffix is a g-<id> span, so names can be styled per group with CSS.
+    return { title: g.name, prefix: `<span class='g-${g.id}'>`, suffix: "</span>", icon: g.icon || "" };
+  }
+  for (const g of groups) {
+    if ("prefix" in g || "suffix" in g) warnings.add(`data/groups.json: ${g.name}'s "prefix" and "suffix" aren't used. Names are always wrapped in <span class='g-${g.id}'>.`);
   }
   for (const m of members) if (!groupById.has(Number(m.group))) warnings.add(`data/members.json: ${m.name} has "group": ${m.group}, but no group in data/groups.json has that id.`);
   const memberGroups = JSON.stringify(Object.fromEntries(groups.map((g) => [g.id, group(g.id)])));
