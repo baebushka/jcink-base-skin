@@ -1,18 +1,35 @@
 # Jcink Base Skin
 
-Build and test your [Jcink](https://jcink.com) forum skin **on your own computer** and see every change instantly, without touching your live forum. When you're happy, copy the finished code into your Jcink Admin CP with one click.
+Clone, build, and test Jcink forum skins **on your own computer**. You can see every change instantly, without touching your live forum. When you're happy, export the XML or copy the finished code and send it to your Jcink Admin CP with a few clicks.
 
-It starts out looking exactly like Jcink's default skin. Everything you write here uses the same code Jcink uses, so it can be pasted straight into your board.
+The project starts out looking exactly like Jcink's default skin. Everything you write here uses the same code as Jcink, including board wrappers (`<% BOARD %>`), template variables (`<!-- |name| -->`), and macros (`<{A_REPLY}>`). 
 
 ![The local preview of the Jcink default skin](docs/preview.jpg)
+
+> ### This project has used AI to generate parts of its code.
+>
+> I know many people in the Jcink coding community are against the use of AI in their projects, and I completely understand why. I want to be upfront about the use of it in this project, so you can decide for yourself whether to use this project.
+>
+> My workplace pays for an AI coding tool and enforces the use of it, with a minimum threshold being required. Since that money is already spent, I've chosen to put as much of it as I can toward personal projects like this one, which I'm sharing for free.
+>
+> - 🤖 The code and guides were written with an AI assistant (Claude). The code has then been thoroughly tested and reviewed manually, by me. I've been a QA since 2021 and I hold a strict quality standard. Every bug fix is checked and retested by me before it's released.
+> - 📋 The default stylesheet, wrapper, macros, and templates are **Jcink's own defaults**, not AI-generated. They can be found [here](https://jcink.com/wiki/jfh-skinning-default-templates).
+> - 💭 The documentation was drafted with AI, then edited and reviewed by me, a human being. I will do my best to make this project as accessible as possible, to ensure people can code more easily and then ship their skins to Jcink seamlessly.
+> - ✍️ **No AI is used when you run the project.** It works entirely on your computer, doesn't connect to any AI service, and nothing you write here is sent anywhere. Your code will not be scraped, fed into an algorithm, or used to further build LLMs against your will.
+>
+> If you, at any point, feel uncomfortable using this project because it uses AI, I recommend you stop using it. 😊 Maintaining your values and moral standard is extremely important for humans and humanity as a whole, and I believe that there is nothing more important than standing by what you believe in.
+> 
+> In my personal life, I do not support the use of generative AI. Even more so, I do not believe it should be used to support coding for Jcink. This hobby for me has always been about creating and learning, an online DIY community that I have enjoyed partaking in for most of my life.
+>
+> At the moment, for me, using my company's resources in this manner is my _personal_ act of rebellion.
 
 ---
 
 ## Contents
 
-1. [What this does](#1-what-this-does)
-2. [What you need](#2-what-you-need)
-3. [Installation, step by step](#3-installation-step-by-step)
+1. [What is this project?](#1-what-is-this-project)
+2. [What do you need?](#2-what-do-you-need)
+3. [How do I install this?](#3-how-do-i-install-this)
 4. [Your first edit](#4-your-first-edit)
 5. [What every folder and file is for](#5-what-every-folder-and-file-is-for)
 6. [Custom profile fields](#6-custom-profile-fields)
@@ -24,60 +41,66 @@ It starts out looking exactly like Jcink's default skin. Everything you write he
 
 ---
 
-## 1. What this does
+## 1. What is this project?
+This project started out of a personal frustration: whenever I started working on a Jcink skin, I would have to create a new skin set, paste in all of my "defaults" (variables, scripts, and so on), and then begin editing in the ACP, save, switch tab, refresh, rinse-and-repeat. On top of this, a browser's cookies or delays between the server sometimes would require multiple refreshes.
 
-Normally, to change a Jcink skin you edit code in the Admin CP, save, open your forum in another tab, refresh, and repeat. Your members see every half-finished change.
+This project allows you to **clone a default Jcink forum** to your computer and make changes quicker and simpler. You can work locally, create data samples in JSON files that don't require you to have registered members (for new sites), is compatible with major Jcink features (macros, custom profile fields, etc.), and can be quickly exported to add to your site.
 
-This project gives you a **fake copy of a Jcink forum** that runs only on your computer:
+Here is a more detailed breakdown of the currently supported features, as of November 2026:
 
-- 🔁 **It updates as you save.** Change a color, save the file, and the page in your browser changes immediately.
-- 🧩 **It uses Jcink's own system.** Your wrapper, stylesheet, macros and HTML templates work exactly like they do on Jcink, including variables like `<!-- |name| -->`.
-- 🗂️ **It's filled with sample content.** It has categories, forums, topics, posts and members, which you can edit.
-- 🏷️ **It supports custom profile fields.** You list your fields once and use them everywhere.
-- 📋 **Getting code into Jcink is easy.** A "Copy to Jcink" page gives you a Copy button for every box in the Admin CP, plus importable skin files.
-
-Nothing here connects to your real forum, and nothing you do here can break it.
+- 🔁 **Update as you save.** Make any change, save the file, and the page in your browser changes immediately. No server lag, no cookies, no restarts, no _frustration_.
+- 🧩 **Jcink compatible.** Your wrapper, stylesheet, macros and HTML templates work exactly like they do on Jcink, including variables like `<!-- |name| -->`.
+- 🗂️ **Sample content.** The project provides categories, forums, topics, posts, and members by default. You can always edit them in `data/`, and information on how to edit and add more is provided in `documentation/`.
+- 🏷️ **Profile-field support.** You can export your site's custom profile fields from the Admin CP and paste them straight into `data/custom-fields.json`. Alternatively, you can create them using the provided pattern and import them straight into the Admin CP.
+- 📋 **Export to Jcink.** The "Copy to Jcink" (`localhost:3000/__copy`) page gives you a Copy button for every box in the Admin CP, plus importable skin files.
+- 🐛 **Easier troubleshooting.** Because you will work with an IDE, mistakes are not only minimised by the program itself, but troubleshooting through errors is inherently easier. For experienced developers who work with JavaScript, swapping this project's `dev/` core into TypeScript should not take a long time.
 
 ---
 
-## 2. What you need
+## 2. What do you need?
 
-| What | Why | Cost |
-|---|---|---|
-| A computer (Mac, Windows or Linux) | To run the preview | – |
-| **Node.js** version 20 or newer | It runs the preview | Free |
+In short, this project is _entirely_ free. The resources you need you already have (a computer, no matter how low-end) and a couple of free programs to support your work.
+
+> 💭 If you are concerned about running a server on an old laptop, don't be! This project runs a preview website on your computer, which does not require a lot of computing power, it's about 50 MB of your memory. 
+
+| What | Why                                                                                       | Cost |
+|---|-------------------------------------------------------------------------------------------|---|
+| A computer (Mac, Windows or Linux) | To run the server                                                                         | – |
+| **Node.js** version 20 or newer | It runs the preview                                                                       | Free |
 | A **code editor** | To edit the files. [Visual Studio Code](https://code.visualstudio.com/) is a popular choice. | Free |
-| A web browser | To look at the preview | Free |
+| A web browser | To look at the preview                                                                    | Free |
 
-You **don't** need to know how to program. You only type two short commands, and this guide shows you exactly what to type.
+For the installation of this project, you **do not** need to know any advanced coding. You only type two short commands in your terminal. This guide shows you exactly what to type, with explanations on what each command does and means.
 
 ---
 
-## 3. Installation, step by step
+## 3. How do I install this?
 
 ### Step 1: Install Node.js
 
-Use Node.js's **pre-built installer**. It's a normal installer you double-click, with no commands to type.
+Node.js is a free, open-source, cross-platform JavaScript runtime environment that lets developers create servers, web apps, command line tools. For this project, use Node.js's **pre-built installer**. It's a normal installer you double-click, with no commands to type.
 
-1. Go to **https://nodejs.org/en/download**.
-2. Make sure the version at the top is one marked **LTS** ("Long Term Support", the stable one). It usually is already.
+1. Go to **[the download page](https://nodejs.org/en/download)**.
+2. Make sure the version at the top is one marked **LTS** ("Long-Term Support", the stable one). It usually is pre-selected already.
 3. **Skip the box of commands** at the top of the page. That's for a different install method.
 4. Scroll down to **"Or get a prebuilt Node.js®"** and click the installer for your computer:
-   - **Mac:** **macOS Installer (.pkg)**
-   - **Windows:** **Windows Installer (.msi)**
+   - **Mac:** **macOS Installer (`.pkg`)**
+   - **Windows:** **Windows Installer (`.msi`)**
 5. Open the downloaded `.pkg` or `.msi` file and click through the installer, keeping all the default options. It installs **npm** too, which this project also needs.
 
-> The page normally detects your computer automatically. If it picks the wrong system, change it in the dropdowns next to "Or get a prebuilt Node.js® for…".
+> ✅ The page normally detects your computer automatically. If it picks the wrong system, change it in the dropdowns next to "Or get a prebuilt Node.js® for…".
 
-**To check it worked**, open a terminal (see the box below) and type:
+> 💡Node Package Manager (`npm`) is the default package manager for Node.js and the world's largest software registry for JavaScript. It lets developers share, install, and manage reusable code packages or libraries in their projects
+
+**To check it worked**, open a terminal (see the box below) and type the line below, then press **Enter**. You should see a version number like `v24.22.2`. If the first number is **20 or higher**, you're set.
 
 ```bash
 node -v
 ```
 
-then press **Enter**. You should see a version number like `v24.22.2`. If the first number is **20 or higher**, you're set.
+> 💡 Boxes like the one above (marked `bash`) are commands you type into your terminal. Bash is the terminal program on Mac and Linux. On Windows you'll use PowerShell instead, but these commands are typed exactly the same way.
 
-> **💡 How do I open a terminal?**
+> #### 💡 How do I open a terminal?
 > A terminal is a window where you type commands instead of clicking.
 > - **Mac:** press `Cmd + Space`, type **Terminal**, press Enter.
 > - **Windows:** press the Windows key, type **PowerShell**, press Enter.
@@ -105,7 +128,7 @@ In VS Code, choose **File → Open Folder…** and pick the project folder (the 
 
 ### Step 4: Start the preview
 
-In the terminal, type:
+In the code editor (or IDE) terminal, type:
 
 ```bash
 npm run dev
@@ -118,13 +141,17 @@ Jcink preview: http://localhost:3000
 Copy to Jcink: http://localhost:3000/__copy
 ```
 
+`http://localhost:3000` is your copy of the Jcink site. 
+
+`http://localhost:3000/__copy` is where you can see all your codes and export them (instead of navigating between pages).
+
 ### Step 5: Open it in your browser
 
 Go to **http://localhost:3000**. You'll see a forum in Jcink's default style. 🎉
 
 A small dark toolbar in the bottom-right corner lets you jump between pages and open the **Copy code** page.
 
-> **Leave the terminal open** while you work. That's the preview running. To stop it, click into the terminal and press `Ctrl + C`. To start it again later, repeat Step 4.
+> **Leave the terminal open in your IDE** while you work. That's the preview running. To stop it, click into the terminal and press `Ctrl + C`. To start it again later, repeat Step 4.
 
 There's nothing else to install. This project doesn't download any extra packages.
 
@@ -178,15 +205,15 @@ Each file here matches **one box in your Jcink Admin CP**, under *Skins & Templa
 | `templates/` | Your **HTML templates**: one file per template (see below). | HTML Templates |
 | `images/` | A place for your own images while developing. They show at `/images/your-file.png` in the preview. Before going live, upload them somewhere public and use that link instead. | – |
 
-**How to read `macros.json`:** each line is `"NAME": "what it turns into"`. For example:
+> 💡**How to read `macros.json`:** each line is `"NAME": "what it turns into"`. For example:
+> 
+> ```json
+> "A_REPLY": "<div class='button-large'>Add Reply</div>",
+> ```
+> 
+> means "wherever `<{A_REPLY}>` appears, show an Add Reply button." Keep the quotes and the comma at the end of each line, except the last one.
 
-```json
-"A_REPLY": "<div class='button-large'>Add Reply</div>",
-```
-
-means "wherever `<{A_REPLY}>` appears, show an Add Reply button." Keep the quotes and the comma at the end of each line, except the last one.
-
-#### `skin/templates/`: one file per HTML template
+#### 🧩 `skin/templates/`: one file per HTML template
 
 | File | Jcink template name | What it controls |
 |---|---|---|
@@ -203,7 +230,7 @@ means "wherever `<{A_REPLY}>` appears, show an Add Reply button." Keep the quote
 | `member_list_head.html` | Member List Header | The box around the member list. |
 | `member_list_row.html` | Member List Row | One member in the member list. |
 
-Inside templates you'll see **variables** like `<!-- |posts| -->`. Jcink replaces these with real information, such as the member's post count. The [Jcink HTML Templates documentation](https://jcink.com/wiki/jfh-html-templates) lists every variable each template can use, and they all work here too.
+Inside templates you'll see **variables** like `<!-- |posts| -->`. Jcink replaces these with real information, such as the member's post count. The [Jcink HTML Templates Documentation](https://jcink.com/wiki/jfh-html-templates) lists every variable each template can use, and they all work here too.
 
 > **Tip:** If you add a variable or macro the preview doesn't know, a **⚠ number** appears in the bottom-right toolbar. Click it to see what's missing.
 
@@ -267,7 +294,7 @@ This project reads your fields in **the same format Jcink exports them**, so you
 }
 ```
 
-To add another, copy a whole block, put a comma between blocks, and change the number in **both** places (`"76":` and `"fid"`).
+To add another, copy a whole block, put a comma between blocks, and change the number in **both** places (eg. `"76":` and `"fid"`).
 
 **What each setting means.** The first column matches the column names in your Admin CP's custom fields list:
 
@@ -379,7 +406,7 @@ This creates two files in the `dist/` folder:
 npm run copy -- post_row
 ```
 
-This puts the Post Row template on your clipboard, ready to paste. Type `npm run copy` on its own to see every name you can use (`wrapper`, `stylesheet`, `mini_profile`…).
+This puts the Post Row template on your clipboard, ready to paste. Type `npm run copy` on its own to see every name you can use (`wrapper`, `stylesheet`, `mini_profile`).
 
 ---
 
