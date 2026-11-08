@@ -470,6 +470,7 @@ Extra tools that make designing easier. They only exist in the preview and are n
 | 👥 **Member groups** | Keep your board's groups and their colours in `data/groups.json`, see them all on the Groups page (`localhost:3000/__groups`), and preview the board as any group from the toolbar's **Group** dropdown. | [Member groups](documentation/member-groups.md) |
 | 🗂️ **Forums page** | Add, edit, reorder and delete categories, forums, subforums, topics and replies at `localhost:3000/__forums`. It writes `data/forums.json` for you and checks IDs and authors as you go. | [Adding forum content](documentation/adding-forum-content.md#0-the-easy-way-the-forums-page) |
 | 🏷️ **Fields page** | Add, edit and delete custom profile fields with an Admin CP-style form at `localhost:3000/__fields`. It writes `data/custom-fields.json` for you. | [Custom profile fields](documentation/custom-profile-fields.md#4-what-is-the-fields-page) |
+| 🧑‍🤝‍🧑 **Members page** | Add, edit and delete sample members and their subaccounts at `localhost:3000/__members`, with an answer box for every custom profile field. It writes `data/members.json` for you. | [Custom profile fields](documentation/custom-profile-fields.md#6-how-do-i-give-sample-members-answers) |
 
 ---
 

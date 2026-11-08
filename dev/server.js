@@ -7,6 +7,7 @@ const { createRenderer } = require("./render");
 const { pieces, skinXml, templatesXml } = require("./pieces");
 const { esc, inlineJson, PAGE_CSS, FORM_CSS, COPY_JS, radios, openFile } = require("./page-kit");
 const forums = require("./forums-page");
+const membersEditor = require("./members-page");
 
 const PORT = process.env.PORT || 3000;
 
@@ -36,10 +37,11 @@ ${SET_GROUP_JS}
 </script>
 <nav id="dev-bar">
   <a href="/">Index</a><a href="/index.php?showforum=1">Forum</a><a href="/index.php?showtopic=1">Topic</a>
-  <a href="/index.php?showuser=1">Profile</a><a href="/index.php?act=Members">Members</a>
+  <a href="/index.php?showuser=1">Profile</a><a href="/index.php?act=Members">Member list</a>
   ${groupSelect(toolbar)}
   <a href="/__groups" target="_blank">Groups</a>
   <a href="/__fields" target="_blank">Fields</a>
+  <a href="/__members" target="_blank">Members</a>
   <a href="/__forums" target="_blank">Forums</a>
   <a href="/__copy" target="_blank"><b>Copy code</b></a>
   ${warnings.length ? `<details><summary>&#9888; ${warnings.length}</summary><ul>${warnings.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></details>` : ""}
@@ -296,7 +298,7 @@ function fieldsPage() {
   #json-out textarea{height:280px}
 </style></head><body><main>
 <h1>Custom profile fields</h1>
-<p>From <code>data/custom-fields.json</code>, in the same format as Jcink's export. Saving here writes the file for you. Give your sample members answers in <code>data/members.json</code> under <code>"fields"</code>.</p>
+<p>From <code>data/custom-fields.json</code>, in the same format as Jcink's export. Saving here writes the file for you. Give your sample members answers on the <a href="/__members" target="_blank" style="color:#7c3aed">Members page</a>, or in <code>data/members.json</code> under <code>"fields"</code>.</p>
 <div class="file-bar"><button type="button" id="open-file" title="${esc(FIELDS_FILE)}">Open custom-fields.json</button><span>Opens the file on your computer, in your default app for .json files.</span></div>
 ${error ? `<div class="alert">${esc(error)}</div>` : ""}
 <div id="notice" class="alert notice" hidden></div>
@@ -571,9 +573,9 @@ http
       const cookies = Object.fromEntries((req.headers.cookie || "").split(/;\s*/).filter(Boolean).map((c) => c.split("=")));
       if (p === "/__copy") return send(res, 200, "text/html; charset=utf-8", copyPage());
       if (p === "/__groups") return send(res, 200, "text/html; charset=utf-8", groupsPage(cookies));
-      const editors = { "/__fields": changeFields, "/__fields/open": openFieldsFile, "/__forums": forums.change, "/__forums/open": forums.open };
+      const editors = { "/__fields": changeFields, "/__fields/open": openFieldsFile, "/__forums": forums.change, "/__forums/open": forums.open, "/__members": membersEditor.change, "/__members/open": membersEditor.open };
       if (editors[p] && req.method === "POST") {
-        // Only the Fields and Forums pages may write or open files: a JSON body (which other websites can't send without asking) from this origin.
+        // Only the Fields, Forums and Members pages may write or open files: a JSON body (which other websites can't send without asking) from this origin.
         const origin = req.headers.origin;
         if (!/^application\/json\b/.test(req.headers["content-type"] || "") || (origin && origin !== `http://${req.headers.host}`)) {
           return send(res, 403, "application/json", JSON.stringify({ error: "Forbidden" }));
@@ -586,6 +588,7 @@ http
       }
       if (p === "/__fields") return send(res, 200, "text/html; charset=utf-8", fieldsPage());
       if (p === "/__forums") return send(res, 200, "text/html; charset=utf-8", forums.page());
+      if (p === "/__members") return send(res, 200, "text/html; charset=utf-8", membersEditor.page());
       if (p === "/__skin.xml") return send(res, 200, "application/xml", skinXml());
       if (p === "/__templates.xml") return send(res, 200, "application/xml", templatesXml());
       // Jcink's default images live on its CDN.
@@ -611,7 +614,7 @@ http
       send(res, 500, "text/html; charset=utf-8", `<pre style="padding:16px;color:#b00">${esc(err.message)}\n\n${esc(err.stack)}</pre><script>new EventSource("/__live").onmessage=()=>location.reload()</script>`);
     }
   })
-  .listen(PORT, () => console.log(`Jcink preview: http://localhost:${PORT}\nCopy to Jcink: http://localhost:${PORT}/__copy\nMember groups: http://localhost:${PORT}/__groups\nProfile fields: http://localhost:${PORT}/__fields\nForums: http://localhost:${PORT}/__forums`));
+  .listen(PORT, () => console.log(`Jcink preview: http://localhost:${PORT}\nCopy to Jcink: http://localhost:${PORT}/__copy\nMember groups: http://localhost:${PORT}/__groups\nProfile fields: http://localhost:${PORT}/__fields\nForums: http://localhost:${PORT}/__forums\nMembers: http://localhost:${PORT}/__members`));
 
 // Stylesheet edits swap in place; anything else reloads the page.
 let timer;

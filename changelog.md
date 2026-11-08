@@ -13,6 +13,15 @@ Version numbers go up like this:
 
 ---
 
+## 1.5.0 – 2026-11-08
+
+- [ 🆕 ] A **Members page** (`localhost:3000/__members`, or **Members** in the toolbar) showing every sample member with their ID, group, profile link and their answer to every custom profile field. Subaccounts are listed under their main account.
+- [ 🆕 ] An Admin CP-style form on the Members page to **add and edit** members. New members get the next free ID automatically, and IDs can't be changed. A name is required and must be unique.
+- [ 🆕 ] **Subaccounts**: once a member exists, a new one can be marked as a subaccount of any main account (`"parent_id"` in `data/members.json`, `<!-- |parent_id| -->` in templates). **+ Subaccount** on a member adds one directly.
+- [ 🆕 ] The form has a box for every custom profile field (a text box, text area or dropdown, matching the field's type), pre-filled with answers already in `data/members.json`. The page updates by itself when you add a field on the Fields page.
+- [ 🆕 ] **Delete** (click twice to confirm), with an error instead when the member still has subaccounts, wrote posts or shouts, or is the logged-in viewer. An **Open members.json** button too.
+- [ 🔁 ] The toolbar's link to the preview's member list is now called **Member list**, and **Members** opens the new page.
+
 ## 1.4.0 – 2026-11-05
 
 - [ 🆕 ] A **Forums page** (`localhost:3000/__forums`, or **Forums** in the toolbar) showing the whole board as a tree: categories, forums, subforums, topics and posts, with **View** links to each one in the preview.
