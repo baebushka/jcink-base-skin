@@ -15,7 +15,7 @@ The toolbar only exists in the preview. It's never copied to Jcink, so you don't
 4. [Sample data forms](#4-sample-data-forms)
 5. [Copy code](#5-copy-code)
 6. [Errors](#6-errors)
-7. [Hiding the toolbar](#7-hiding-the-toolbar)
+7. [Moving and hiding the toolbar](#7-moving-and-hiding-the-toolbar)
 8. [Changing the toolbar](#8-changing-the-toolbar)
 
 ---
@@ -25,7 +25,7 @@ The toolbar only exists in the preview. It's never copied to Jcink, so you don't
 The toolbar is split into **five sections**, divided by a `|`:
 
 ```
-Index  Forum  Topic  Profile  Member list | Group: own ▾ | Sample data forms ▾ | Copy code | ⚠️ 1   ×
+⋮⋮  Index  Forum  Topic  Profile  Member list | Group: own ▾ | Sample data forms ▾ | Copy code | ⚠️ 1   ×
 ```
 
 | Section | What it does |
@@ -36,7 +36,7 @@ Index  Forum  Topic  Profile  Member list | Group: own ▾ | Sample data forms �
 | **Copy code** | Opens the Copy to Jcink page in a new tab. |
 | **Errors** | How many problems the preview found on this page. Only shows when there's at least one. |
 
-The `×` at the end hides the toolbar (see [step 7](#7-hiding-the-toolbar)).
+The `⋮⋮` at the start lets you drag the toolbar anywhere on the page, and the `×` at the end hides it (see [step 7](#7-moving-and-hiding-the-toolbar)).
 
 ---
 
@@ -117,7 +117,21 @@ Fix the problem and save. The page reloads, and the warning goes away. When ther
 
 ---
 
-## 7. Hiding the toolbar
+## 7. Moving and hiding the toolbar
+
+### Moving it
+
+If the toolbar is covering part of your skin, move it. Hold down the **⋮⋮** handle at the start of the toolbar and drag it anywhere on the page.
+
+- It **stays where you left it** when you reload, move to another page, or save a file.
+- It goes **back to the bottom-right corner** when you stop the preview and start it again (`npm run dev`).
+- **Double-click** the ⋮⋮ handle to put it back in the corner straight away.
+- Near the top of the page, the **Sample data forms** menu and the ⚠️ list open **downward** instead of upward, so they stay on screen.
+- If you make the browser window smaller, the toolbar moves just enough to stay on screen.
+
+> 💡 The position is saved in your browser, so each browser remembers its own spot.
+
+### Hiding it
 
 Click the **×** at the end of the toolbar to hide it, for example to take a screenshot or check what's underneath it. It comes back when you reload the page or move to another page.
 
@@ -133,9 +147,9 @@ All of the toolbar's code lives in **`dev/dev-toolbar/`**:
 |---|---|
 | `toolbar.html` | The toolbar's HTML. `{{groupSelect}}`, `{{pages}}` and `{{warnings}}` are filled in for each page. |
 | `toolbar.css` | The toolbar's styles, grouped by section. |
-| `toolbar.js` | Browser code for the toolbar, like closing the Sample data forms menu when you click somewhere else. |
+| `toolbar.js` | Browser code for the toolbar: dragging it and remembering where it was left, and closing the Sample data forms menu when you click somewhere else. |
 | `set-group.js` | `devSetGroup()`, which remembers the chosen group. The Groups page uses it too. |
-| `index.js` | Puts the files above together. The list of forms in the **Sample data forms** menu (`PAGES`) is here. |
+| `index.js` | Puts the files above together. The list of forms in the **Sample data forms** menu (`PAGES`) is here, and so is `BOOT`, a new value each time the server starts. A dragged position is only reused while `BOOT` stays the same, which is why the toolbar goes back to the corner after a restart. |
 
 The `.html`, `.css` and `.js` files are read again on every page load, and saving one reloads the preview, so you see your change straight away. If you edit `index.js`, stop the preview (`Ctrl + C`) and start it again (`npm run dev`).
 

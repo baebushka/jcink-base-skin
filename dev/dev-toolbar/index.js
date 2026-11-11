@@ -15,6 +15,10 @@ const PAGES = [
   ["/__forums", "Forums"],
 ];
 
+// A new value each time the server starts. The toolbar only reuses a dragged position saved with
+// the same value, so it goes back to the bottom-right corner after the server restarts.
+const BOOT = Date.now().toString(36);
+
 // devSetGroup(id), for the Groups page too.
 const setGroupJs = () => read("set-group.js");
 
@@ -35,6 +39,7 @@ function warningsSection(warnings) {
 // `state` is the renderer's toolbar info: { groups, selected, own }.
 function toolbar(warnings, state) {
   const parts = {
+    boot: BOOT,
     groupSelect: groupSelect(state),
     pages: PAGES.map(([href, label]) => `<a href="${href}" target="_blank">${label}</a>`).join(""),
     warnings: warningsSection(warnings),
@@ -42,10 +47,11 @@ function toolbar(warnings, state) {
   const html = read("toolbar.html")
     .replace(/<!--[\s\S]*?-->\s*/, "") // the note at the top of the file
     .replace(/\{\{(\w+)\}\}/g, (_, name) => parts[name] ?? "");
-  return `<script>${setGroupJs()}</script>
+  // The CSS comes before toolbar.js, which needs the bar's real size to restore a dragged position.
+  return `<style>${read("toolbar.css")}</style>
+<script>${setGroupJs()}</script>
 ${html}
-<script>${read("toolbar.js")}</script>
-<style>${read("toolbar.css")}</style>`;
+<script>${read("toolbar.js")}</script>`;
 }
 
 module.exports = { DIR, toolbar, setGroupJs };

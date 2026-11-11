@@ -14,6 +14,12 @@
   text-align: left;
 }
 
+/* Drag handle */
+#dev-bar .dev-grip { color: #fff8; padding: 6px 4px; cursor: grab; user-select: none; touch-action: none; letter-spacing: -3px; }
+#dev-bar .dev-grip:hover { color: #fff; }
+#dev-bar.dev-dragging, #dev-bar.dev-dragging .dev-grip { cursor: grabbing; }
+#dev-bar.dev-dragging { box-shadow: 0 6px 20px #0006; }
+
 /* Sections and the | between them */
 #dev-bar .dev-sec { display: flex; align-items: center; gap: 2px; margin: 0; }
 #dev-bar .dev-sep { color: #fff5; font-style: normal; padding: 0 4px; user-select: none; }
@@ -59,3 +65,7 @@
 /* Errors: the warning count and its list */
 #dev-bar .dev-warn summary { color: #fc6 !important; }
 #dev-bar ul { position: absolute; bottom: 100%; right: 0; margin: 0 0 6px; padding: 10px 10px 10px 26px; max-width: 420px; background: #111; color: #fff; border-radius: 8px; line-height: 1.5; }
+
+/* When the bar is dragged to the top half of the page, menus open downward */
+#dev-bar.dev-top .dev-menu > div { bottom: auto; top: 100%; margin: 10px 0 0; }
+#dev-bar.dev-top ul { bottom: auto; top: 100%; margin: 6px 0 0; }

@@ -1,6 +1,7 @@
 <!-- The dev toolbar at the bottom right of every preview page.
      index.js fills in each {{name}} and adds toolbar.css and toolbar.js. -->
-<nav id="dev-bar">
+<nav id="dev-bar" data-boot="{{boot}}">
+  <span class="dev-grip" title="Drag to move. Double-click to put it back in the corner.">&#8942;&#8942;</span>
   <div class="dev-sec" title="Navigation">
     <a href="/">Index</a><a href="/index.php?showforum=1">Forum</a><a href="/index.php?showtopic=1">Topic</a>
     <a href="/index.php?showuser=1">Profile</a><a href="/index.php?act=Members">Member list</a>
