@@ -1,4 +1,4 @@
-// Shared pieces for the helper pages (/__copy, /__groups, /__fields and /__forums).
+// Shared pieces for the helper pages (/__copy, /__groups, /__fields, /__forums and /__members).
 const { spawn } = require("child_process");
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

@@ -193,6 +193,8 @@ So a member who picked `she` shows `she/her` on the page.
 
 ## 6. How do I give sample members answers?
 
+> 🧑‍🤝‍🧑 **The easy way:** open the **Members page** (`localhost:3000/__members`, or **Members** in the toolbar) and click **Edit** on a member. There's a box for every field, already filled in with their answers, and it writes `data/members.json` for you. You can add members and subaccounts there too.
+
 Each member in `data/members.json` has a `"fields"` section. Each answer uses the field's template variable name:
 
 ```json
