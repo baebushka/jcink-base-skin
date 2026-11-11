@@ -241,7 +241,7 @@ Your choice is **remembered** as you move between pages, and after you restart t
 
 ## 8. What is the groups page?
 
-Click **Groups** in the toolbar, or go to **http://localhost:3000/__groups**. It's a quick overview of `data/groups.json`:
+Click **Sample data forms → Groups** in the toolbar, or go to **http://localhost:3000/__groups**. It's a quick overview of `data/groups.json`:
 
 - Every group's **ID** and **name**, with a ⚠ under the name if one of its settings has a problem.
 - Its **colours**, each with a swatch, its hex code and its RGB numbers. Click a colour to copy its hex code.

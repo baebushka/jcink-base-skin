@@ -90,7 +90,7 @@ If your board already has its fields, export them from your Jcink Admin CP and p
 
 ### Option B: Use the Fields page
 
-Open **http://localhost:3000/__fields**, or click **Fields** in the toolbar in the bottom-right corner. Fill in the form at the bottom of the page and click **Add field**. The page writes the field into `data/custom-fields.json` for you, so you never touch the JSON. See [step 4](#4-what-is-the-fields-page) for everything the page does.
+Open **http://localhost:3000/__fields**, or click **Sample data forms → Fields** in the toolbar in the bottom-right corner. Fill in the form at the bottom of the page and click **Add field**. The page writes the field into `data/custom-fields.json` for you, so you never touch the JSON. See [step 4](#4-what-is-the-fields-page) for everything the page does.
 
 ### Option C: Write it by hand
 
@@ -104,7 +104,7 @@ Open **http://localhost:3000/__fields**, or click **Fields** in the toolbar in t
 
 ## 4. What is the Fields page?
 
-Click **Fields** in the toolbar, or go to **http://localhost:3000/__fields**. It's a quick overview of `data/custom-fields.json`, plus a form to change it.
+Click **Sample data forms → Fields** in the toolbar, or go to **http://localhost:3000/__fields**. It's a quick overview of `data/custom-fields.json`, plus a form to change it.
 
 ### The list of fields
 
@@ -206,7 +206,7 @@ So a member who picked `she` shows `she/her` on the page.
 
 ## 6. How do I give sample members answers?
 
-> 🧑‍🤝‍🧑 **The easy way:** open the **Members page** (`localhost:3000/__members`, or **Members** in the toolbar) and click **Edit** on a member. There's a box for every field, already filled in with their answers, and it writes `data/members.json` for you. You can add members and subaccounts there too.
+> 🧑‍🤝‍🧑 **The easy way:** open the **Members page** (`localhost:3000/__members`, or **Sample data forms → Members** in the toolbar) and click **Edit** on a member. There's a box for every field, already filled in with their answers, and it writes `data/members.json` for you. You can add members and subaccounts there too.
 
 Each member in `data/members.json` has a `"fields"` section. Each answer uses the field's template variable name:
 
