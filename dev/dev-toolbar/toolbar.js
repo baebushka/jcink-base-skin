@@ -2,6 +2,18 @@
 (() => {
   const bar = document.getElementById("dev-bar");
 
+  // Bold the Navigation link for the kind of page you're on, whichever forum, topic or member it is.
+  const q = new URLSearchParams(location.search);
+  const act = (q.get("act") || "").toLowerCase();
+  const page =
+    q.has("showtopic") ? "topic" :
+    q.has("showforum") ? "forum" :
+    q.has("showuser") ? "profile" :
+    act === "members" ? "members" :
+    !act && /^\/(index\.php)?$/.test(location.pathname) ? "index" : null; // the index, a category (?c=) or ?guest=1
+  const current = page && bar.querySelector(`[data-page="${page}"]`);
+  if (current) current.setAttribute("aria-current", "page");
+
   // Close the "Sample data forms" menu after picking a page, or when clicking anywhere else.
   const menu = document.getElementById("dev-pages");
   document.addEventListener("click", (e) => {

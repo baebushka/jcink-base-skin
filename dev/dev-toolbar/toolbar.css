@@ -42,6 +42,9 @@
 #dev-bar summary { list-style: none; }
 #dev-bar summary::-webkit-details-marker { display: none; }
 
+/* Navigation: the page you're on */
+#dev-bar a[aria-current="page"] { font-weight: 700; }
+
 /* Preview: the group dropdown */
 #dev-bar select { color: #fff; background: #fff1; border: 0; border-radius: 5px; padding: 5px 4px; font: inherit; cursor: pointer; max-width: 170px; }
 #dev-bar option { color: #111; background: #fff; }

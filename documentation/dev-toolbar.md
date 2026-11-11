@@ -52,6 +52,8 @@ These links open the main pages of your board in the same tab:
 | **Profile** | The first member's profile | `localhost:3000/index.php?showuser=1` |
 | **Member list** | The member list | `localhost:3000/index.php?act=Members` |
 
+The link for the kind of page you're on is **bold**. For example, **Topic** is bold on any topic, whichever one it is. A category page (`?c=1`) counts as the index. Pages that aren't in the list, like search, have no bold link.
+
 To see a different forum, topic or member, change the number in the address. The README lists [every page the preview builds](../README.md#9-which-jcink-pages-are-covered).
 
 ---
