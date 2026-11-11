@@ -1,0 +1,74 @@
+#dev-bar {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 8px;
+  background: #111e;
+  font: 12px/1 system-ui, sans-serif;
+  box-shadow: 0 2px 8px #0004;
+  text-align: left;
+}
+
+/* Drag handle */
+#dev-bar .dev-grip { color: #fff8; padding: 6px 4px; cursor: grab; user-select: none; touch-action: none; letter-spacing: -3px; }
+#dev-bar .dev-grip:hover { color: #fff; }
+#dev-bar.dev-dragging, #dev-bar.dev-dragging .dev-grip { cursor: grabbing; }
+#dev-bar.dev-dragging { box-shadow: 0 6px 20px #0006; }
+
+/* Sections and the | between them */
+#dev-bar .dev-sec { display: flex; align-items: center; gap: 2px; margin: 0; }
+#dev-bar .dev-sep { color: #fff5; font-style: normal; padding: 0 4px; user-select: none; }
+
+#dev-bar a,
+#dev-bar button,
+#dev-bar summary {
+  color: #fff !important;
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+#dev-bar a:hover,
+#dev-bar button:hover,
+#dev-bar summary:hover { background: #fff2; }
+#dev-bar summary { list-style: none; }
+#dev-bar summary::-webkit-details-marker { display: none; }
+
+/* Navigation: the page you're on */
+#dev-bar a[aria-current="page"] { font-weight: 700; }
+
+/* Preview: the group dropdown */
+#dev-bar select { color: #fff; background: #fff1; border: 0; border-radius: 5px; padding: 5px 4px; font: inherit; cursor: pointer; max-width: 170px; }
+#dev-bar option { color: #111; background: #fff; }
+
+/* Sample data forms: a menu that opens upward */
+#dev-bar .dev-menu { position: relative; }
+#dev-bar .dev-menu > div {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin: 0 0 10px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  background: #111;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #0004;
+}
+
+/* Errors: the warning count and its list */
+#dev-bar .dev-warn summary { color: #fc6 !important; }
+#dev-bar ul { position: absolute; bottom: 100%; right: 0; margin: 0 0 6px; padding: 10px 10px 10px 26px; max-width: 420px; background: #111; color: #fff; border-radius: 8px; line-height: 1.5; }
+
+/* When the bar is dragged to the top half of the page, menus open downward */
+#dev-bar.dev-top .dev-menu > div { bottom: auto; top: 100%; margin: 10px 0 0; }
+#dev-bar.dev-top ul { bottom: auto; top: 100%; margin: 6px 0 0; }

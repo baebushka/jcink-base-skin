@@ -27,7 +27,7 @@ You don't need to know how to code. You'll copy a small block of text, paste it 
 
 ## 0. The easy way: the Forums page
 
-With the preview running, click **Forums** in the toolbar, or go to **http://localhost:3000/__forums**.
+With the preview running, click **Sample data forms → Forums** in the toolbar, or go to **http://localhost:3000/__forums**.
 
 The page shows your whole board as a tree: each **category** in a dark box, its **forums** (and subforums) under it, and each forum's **topics** and **posts**. Click a forum or topic to fold it open.
 

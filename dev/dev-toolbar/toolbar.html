@@ -1,0 +1,20 @@
+<!-- The dev toolbar at the bottom right of every preview page.
+     index.js fills in each {{name}} and adds toolbar.css and toolbar.js. -->
+<nav id="dev-bar" data-boot="{{boot}}">
+  <span class="dev-grip" title="Drag to move. Double-click to put it back in the corner.">&#8942;&#8942;</span>
+  <div class="dev-sec" title="Navigation">
+    <a href="/" data-page="index">Index</a><a href="/index.php?showforum=1" data-page="forum">Forum</a><a href="/index.php?showtopic=1" data-page="topic">Topic</a>
+    <a href="/index.php?showuser=1" data-page="profile">Profile</a><a href="/index.php?act=Members" data-page="members">Member list</a>
+  </div>
+  <i class="dev-sep">|</i>
+  <div class="dev-sec" title="Preview">{{groupSelect}}</div>
+  <i class="dev-sep">|</i>
+  <details class="dev-sec dev-menu" id="dev-pages">
+    <summary>Sample data forms &#9662;</summary>
+    <div>{{pages}}</div>
+  </details>
+  <i class="dev-sep">|</i>
+  <div class="dev-sec"><a href="/__copy" target="_blank"><b>Copy code</b></a></div>
+  {{warnings}}
+  <button onclick="this.parentNode.remove()" title="Hide">&times;</button>
+</nav>

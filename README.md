@@ -151,7 +151,7 @@ Copy to Jcink: http://localhost:3000/__copy
 
 Go to **http://localhost:3000**. You'll see a forum in Jcink's default style. 🎉
 
-A small dark toolbar in the bottom-right corner lets you jump between pages, preview the board as a different member group, and open the **Groups**, **Fields**, **Forums** and **Copy code** pages.
+A small dark toolbar in the bottom-right corner lets you jump between pages, preview the board as a different member group, open the **Sample data forms** (Groups, Fields, Members and Forums) and the **Copy code** page, and see any errors. The [dev toolbar guide](documentation/dev-toolbar.md) explains each part.
 
 > **Leave the terminal open in your IDE** while you work. That's the preview running. To stop it, click into the terminal and press `Ctrl + C`. To start it again later, repeat Step 4.
 
@@ -254,6 +254,7 @@ This is the **pretend forum** the preview shows. None of it goes to Jcink. Chang
 | File | What it does |
 |---|---|
 | `server.js` | Runs the preview website at `localhost:3000`, watches your files and refreshes the browser when you save. Also creates the **Copy to Jcink** page. |
+| `dev-toolbar/` | The toolbar in the bottom-right corner of the preview: its HTML, CSS and JavaScript (see the [dev toolbar guide](documentation/dev-toolbar.md#8-changing-the-toolbar)). |
 | `render.js` | Builds each page the way Jcink does: takes the sample data, fills in your templates, places the result in your wrapper, then swaps in your macros. |
 | `skin.js` | Reads all the files in `skin/` and `data/`, and holds the list of template files. |
 | `pieces.js` | Lists everything you paste into Jcink, and builds the importable XML skin files. |
@@ -276,7 +277,7 @@ Jcink lets members fill in extra profile fields, such as a face claim or an age.
 
 In short:
 
-1. **Add your fields to `data/custom-fields.json`.** Paste your board's export from the Admin CP (it uses the same format), or use the **Fields page** (`localhost:3000/__fields`, or **Fields** in the toolbar), which has a form like the Admin CP's and writes the file for you.
+1. **Add your fields to `data/custom-fields.json`.** Paste your board's export from the Admin CP (it uses the same format), or use the **Fields page** (`localhost:3000/__fields`, or **Sample data forms → Fields** in the toolbar), which has a form like the Admin CP's and writes the file for you.
 2. **Give your sample members answers** in `data/members.json`, under `"fields"`, for example `"field_76": "English\nSpanish"`.
 3. **Use the field in your templates**, for example `<div class="postbit">Languages: <!-- |field_76| --></div>`. Every post in the preview shows each member's answer.
 
@@ -288,7 +289,7 @@ In short:
 
 > 📘 **New to this?** [Adding categories, forums, topics and posts](documentation/adding-forum-content.md) walks through it step by step, with blocks you can copy.
 
-> 🗂️ **Prefer a form?** The **Forums page** (`localhost:3000/__forums`, or **Forums** in the toolbar) lets you add, edit, reorder and delete categories, forums, topics and replies without touching the JSON. It writes `data/forums.json` for you.
+> 🗂️ **Prefer a form?** The **Forums page** (`localhost:3000/__forums`, or **Sample data forms → Forums** in the toolbar) lets you add, edit, reorder and delete categories, forums, topics and replies without touching the JSON. It writes `data/forums.json` for you.
 
 All of these files use a format called **JSON**. A few rules to keep in mind:
 
@@ -467,6 +468,7 @@ Extra tools that make designing easier. They only exist in the preview and are n
 
 | Feature | What it does | Guide |
 |---|---|---|
+| 🧰 **Dev toolbar** | The bar in the bottom-right corner of the preview: jump between pages, preview a member group, open the sample data forms and the Copy page, and see errors. The guide has a quick-access table of every form. | [Dev toolbar](documentation/dev-toolbar.md) |
 | 👥 **Member groups** | Keep your board's groups and their colours in `data/groups.json`, see them all on the Groups page (`localhost:3000/__groups`), and preview the board as any group from the toolbar's **Group** dropdown. | [Member groups](documentation/member-groups.md) |
 | 🗂️ **Forums page** | Add, edit, reorder and delete categories, forums, subforums, topics and replies at `localhost:3000/__forums`. It writes `data/forums.json` for you and checks IDs and authors as you go. | [Adding forum content](documentation/adding-forum-content.md#0-the-easy-way-the-forums-page) |
 | 🏷️ **Fields page** | Add, edit and delete custom profile fields with an Admin CP-style form at `localhost:3000/__fields`. It writes `data/custom-fields.json` for you. | [Custom profile fields](documentation/custom-profile-fields.md#4-what-is-the-fields-page) |
