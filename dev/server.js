@@ -8,22 +8,12 @@ const { pieces, skinXml, templatesXml } = require("./pieces");
 const { esc, inlineJson, PAGE_CSS, FORM_CSS, COPY_JS, radios, openFile } = require("./page-kit");
 const forums = require("./forums-page");
 const membersEditor = require("./members-page");
+const devToolbar = require("./dev-toolbar");
+const { toolbar } = devToolbar;
 
 const PORT = process.env.PORT || 3000;
 
-// The toolbar's group dropdown (and the Groups page) remember the choice in a "dev_group" cookie.
-const SET_GROUP_JS = `function devSetGroup(id) {
-  document.cookie = id ? "dev_group=" + id + "; path=/; max-age=31536000" : "dev_group=; path=/; max-age=0";
-}`;
-
-function groupSelect({ groups, selected, own }) {
-  const options = groups.map((g) => `<option value="${g.id}"${g.id === selected ? " selected" : ""}>${g.id} &middot; ${esc(g.name)}</option>`);
-  return `<select id="dev-group" title="Preview as member group (&lt;!-- |g_id| --&gt;)" onchange="devSetGroup(this.value); location.href = location.href.replace(/([?&])guest=1&?/, '$1').replace(/[?&]$/, '')">
-    <option value=""${selected ? "" : " selected"}>Group: own${own ? ` (${esc(own)})` : ""}</option>${options.join("")}
-  </select>`;
-}
-
-const DEV_CLIENT = (warnings, toolbar) => `
+const DEV_CLIENT = (warnings, state) => `
 <script>
 (() => {
   const es = new EventSource("/__live");
@@ -33,31 +23,9 @@ const DEV_CLIENT = (warnings, toolbar) => `
     } else location.reload();
   };
 })();
-${SET_GROUP_JS}
 </script>
-<nav id="dev-bar">
-  <a href="/">Index</a><a href="/index.php?showforum=1">Forum</a><a href="/index.php?showtopic=1">Topic</a>
-  <a href="/index.php?showuser=1">Profile</a><a href="/index.php?act=Members">Member list</a>
-  ${groupSelect(toolbar)}
-  <a href="/__groups" target="_blank">Groups</a>
-  <a href="/__fields" target="_blank">Fields</a>
-  <a href="/__members" target="_blank">Members</a>
-  <a href="/__forums" target="_blank">Forums</a>
-  <a href="/__copy" target="_blank"><b>Copy code</b></a>
-  ${warnings.length ? `<details><summary>&#9888; ${warnings.length}</summary><ul>${warnings.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></details>` : ""}
-  <button onclick="this.parentNode.remove()" title="Hide">&times;</button>
-</nav>
-<style>
-  #dev-bar{position:fixed;bottom:12px;right:12px;z-index:99999;display:flex;align-items:center;gap:2px;padding:4px;border-radius:8px;
-    background:#111e;font:12px/1 system-ui,sans-serif;box-shadow:0 2px 8px #0004;text-align:left}
-  #dev-bar a,#dev-bar button,#dev-bar summary{color:#fff!important;text-decoration:none;padding:6px 8px;border-radius:5px;background:none;border:0;cursor:pointer;font:inherit}
-  #dev-bar a:hover,#dev-bar button:hover,#dev-bar summary:hover{background:#fff2}
-  #dev-bar summary{color:#fc6!important;list-style:none}
-  #dev-bar select{color:#fff;background:#fff1;border:0;border-radius:5px;padding:5px 4px;font:inherit;cursor:pointer;max-width:170px}
-  #dev-bar option{color:#111;background:#fff}
-  #dev-bar ul{position:absolute;bottom:100%;right:0;margin:0 0 6px;padding:10px 10px 10px 26px;max-width:420px;background:#111;color:#fff;border-radius:8px;line-height:1.5}
-  .dev-missing{color:#c00;font:11px monospace}
-</style>`;
+${toolbar(warnings, state)}
+<style>.dev-missing{color:#c00;font:11px monospace}</style>`;
 
 // "Board Owner" -> "board-owner", for the .board-owner / #board-owner selectors.
 const nameSlug = (name) => String(name).replace(/<[^>]*>/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -159,7 +127,7 @@ function groupsPage(cookies) {
 <textarea id="code-gradient-css" readonly spellcheck="false">${esc(gradientCss(groups) || "/* No group has a clr#-hex colour yet. */")}</textarea></section>
 </main>
 <script>${COPY_JS}
-${SET_GROUP_JS}
+${devToolbar.setGroupJs()}
 // Generate shows the CSS. The choice is kept for this tab, so the output stays after a live reload.
 const store = { get: (k) => { try { return sessionStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch {} } };
 const gradientBox = document.getElementById("gen-gradient");
@@ -660,11 +628,12 @@ http
 
 // Stylesheet edits swap in place; anything else reloads the page.
 let timer;
-for (const dir of [SKIN, DATA, JCINK]) {
+for (const dir of [SKIN, DATA, JCINK, devToolbar.DIR]) {
   fs.watch(dir, { recursive: true }, (_, file) => {
     clearTimeout(timer);
     timer = setTimeout(() => {
-      const msg = file && file.endsWith(".css") ? "css" : "reload";
+      // The toolbar's CSS is inlined in the page, so it needs a full reload.
+      const msg = dir !== devToolbar.DIR && file && file.endsWith(".css") ? "css" : "reload";
       console.log(`changed: ${path.relative(ROOT, path.join(dir, file || ""))}`);
       for (const c of clients) c.write(`data: ${msg}\n\n`);
     }, 50);
