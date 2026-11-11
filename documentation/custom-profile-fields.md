@@ -121,6 +121,17 @@ Each row has an **Edit** and a **Delete** button.
 
 Under the list is a **Field Settings** form, laid out like the one in your Admin CP, with the same questions in the same order. Fill it in and click **Add field**. The page saves the field, reloads, and shows a green message with the field's template variable.
 
+It also gives every sample member in `data/members.json` an **empty answer** for the new field, so you only have to fill it in:
+
+```json
+"fields": {
+  "field_1": "Zendaya",
+  "field_6": ""
+}
+```
+
+Members who already have an answer for that field keep it. If the field is **required**, the toolbar warns about each empty answer until you fill it in (see [step 10](#10-what-if-something-goes-wrong)).
+
 The form has one extra question at the top: **Field ID**. The Admin CP doesn't ask for this, because Jcink picks the number for you. In the preview you choose it yourself. The form suggests the next free number, and the display order after your last field. If you're copying a field from your real board, use the ID it has there.
 
 For a **Drop Down**, an **Option Content** box appears. Write one option per line as `key=Label`:
@@ -138,7 +149,9 @@ The **Will produce:** dropdown next to it updates as you type, so you can see th
 
 Click **Edit** on a field's row. Its settings load into the form, and the button changes to **Complete Edit**. Change what you need and click it. You can change the **Field ID** too: the field is saved under the new number and the old one is removed. To leave without saving, click **+ New field instead**.
 
-> ⚠️ Changing a field's ID doesn't update your templates or `members.json`. Change `field_6` to `field_76` in both, or the toolbar will warn you about the old number.
+When you change the ID, your sample members' answers in `data/members.json` move with it: `"field_6": "Singing"` becomes `"field_76": "Singing"`.
+
+> ⚠️ Changing a field's ID doesn't update your templates. Change `field_6` to `field_76` in them, or the toolbar will warn you about the old number.
 
 ### Deleting a field
 

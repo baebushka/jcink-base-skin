@@ -252,7 +252,46 @@ function changeFields(body) {
   if (original && original !== field.fid) delete fields[original];
   fields[field.fid] = field;
   writeFields(fields);
-  return { ok: true, fid: field.fid };
+  // A new field (or a new ID) gets an empty answer for every sample member, ready to fill in.
+  if (original === field.fid) return { ok: true, fid: field.fid };
+  try {
+    return { ok: true, fid: field.fid, members: addMemberAnswers(field.fid, original) };
+  } catch (err) {
+    return { ok: true, fid: field.fid, membersError: err.message };
+  }
+}
+
+const MEMBERS_FILE = path.join(DATA, "members.json");
+const fieldNumber = (key) => (/^(field_)?\d+$/.test(key) ? Number(key.replace("field_", "")) : Number.MAX_SAFE_INTEGER);
+
+// Gives every member in data/members.json a "field_N": "" answer, keeping answers in field order.
+// When a field's ID changed (from), its answers move to the new ID instead.
+// Returns how many members were changed.
+function addMemberAnswers(fid, from) {
+  if (!fs.existsSync(MEMBERS_FILE)) return 0;
+  let members;
+  try {
+    members = JSON.parse(fs.readFileSync(MEMBERS_FILE, "utf8"));
+  } catch (err) {
+    throw new Error(`data/members.json is not valid JSON (${err.message}), so no empty answers were added.`);
+  }
+  if (!Array.isArray(members)) return 0;
+  const key = `field_${fid}`;
+  let changed = 0;
+  for (const m of members) {
+    if (!m || typeof m !== "object") continue;
+    const answers = m.fields && typeof m.fields === "object" ? m.fields : {};
+    if (key in answers || fid in answers) continue;
+    const oldKey = from ? [`field_${from}`, from].find((k) => k in answers) : undefined;
+    const value = oldKey !== undefined ? answers[oldKey] : "";
+    if (oldKey !== undefined) delete answers[oldKey];
+    answers[key] = value;
+    // Keep field_1, field_2, … in number order; anything else keeps its place after them.
+    m.fields = Object.fromEntries(Object.entries(answers).sort(([a], [b]) => fieldNumber(a) - fieldNumber(b)));
+    changed++;
+  }
+  if (changed) fs.writeFileSync(MEMBERS_FILE, JSON.stringify(members, null, 2) + "\n");
+  return changed;
 }
 
 function fieldsPage() {
@@ -445,7 +484,10 @@ form.addEventListener("submit", async (e) => {
   try {
     const f = current();
     const out = await post({ original: editing, field: f });
-    flash((editing ? "Saved" : "Added") + " field " + out.fid + " (" + f.ftitle + "). Use it with <!-- |field_" + out.fid + "| -->.");
+    let msg = (editing ? "Saved" : "Added") + " field " + out.fid + " (" + f.ftitle + "). Use it with <!-- |field_" + out.fid + "| -->.";
+    if (out.members) msg += " Added an empty \\"field_" + out.fid + "\\" answer to " + out.members + " sample member" + (out.members === 1 ? "" : "s") + " in data/members.json.";
+    if (out.membersError) msg += " " + out.membersError;
+    flash(msg, Boolean(out.membersError));
     dirty = false; location.reload();
   } catch (err) { showError(err.message); }
 });
@@ -489,10 +531,10 @@ document.addEventListener("click", async (e) => {
 });
 
 // Saving reloads the page, and the file watcher may reload it once more, so the notice lives for a few seconds.
-function flash(msg) { store.set("dev_fields_notice", JSON.stringify({ msg, at: Date.now() })); }
+function flash(msg, isError) { store.set("dev_fields_notice", JSON.stringify({ msg, isError, at: Date.now() })); }
 try {
   const n = JSON.parse(store.get("dev_fields_notice"));
-  if (n && Date.now() - n.at < 5000) { const box = document.getElementById("notice"); box.textContent = n.msg; box.hidden = false; }
+  if (n && Date.now() - n.at < 5000) { const box = document.getElementById("notice"); box.textContent = n.msg; box.classList.toggle("notice", !n.isError); box.hidden = false; }
 } catch {}
 startNew();
 // Reload when data files change, unless you're halfway through filling in the form.
